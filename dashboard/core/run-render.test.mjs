@@ -2,10 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, it, vi } from 'vitest';
 import { runSchema } from './contracts.mjs';
-import { readJson } from './jsonfile.mjs';
+import { readJson, writeJsonAtomic } from './jsonfile.mjs';
 import { findBrowserExe, sharedBrowserDir } from './remotion.mjs';
-import { defaultDeps, extractStills, finishRun, installDeps, npmCliPath, renderVideo, startRun } from './run-ops.mjs';
-import { readActiveRun, readRun } from './run-store.mjs';
+import { defaultDeps, extractStills, failRun, finishRun, installDeps, npmCliPath, renderVideo, stageRun, startRun } from './run-ops.mjs';
+import { readActiveRun, readRun, runPaths } from './run-store.mjs';
 import { at, makeFixtureRepo } from './test-utils.mjs';
 
 const projAbs = (root) => path.join(root, 'projects', 'halo');
@@ -182,4 +182,56 @@ it('stills memakai remotion ffmpeg dengan argumen tetap dan folder frames di run
     args: [cliAbs(root), 'ffmpeg', '-y', '-loglevel', 'error', '-ss', '2.50', '-i', video, '-frames:v', '1', frame(1)] });
   expect(calls[1].args.at(-1)).toBe(frame(2));
   expect(fs.existsSync(path.dirname(frame(1)))).toBe(true);
+});
+
+// --- Fix round 1 (R22): data safety ---
+
+it('run.json dengan project atau runId di luar folder proyek ditolak; tidak ada yang dihapus di luar proyek', () => {
+  const { root, d, runId } = setup({ probe: GOOD });
+  const keep = path.join(root, 'dashboard', 'node_modules', 'keep.txt');
+  fs.mkdirSync(path.dirname(keep), { recursive: true }); fs.writeFileSync(keep, 'x');
+  writeVideo(root, runId, 'data');
+  fs.mkdirSync(path.join(root, 'dashboard', 'out'), { recursive: true }); // a valid video where the bad project would point: finish would succeed there
+  fs.writeFileSync(path.join(root, 'dashboard', 'out', `${runId}.mp4`), 'data');
+  const { runFile } = runPaths(root, 'halo', runId);
+  const good = readRun(root, 'halo', runId).value;
+  for (const bad of [{ project: '../dashboard' }, { runId: '../x' }, { project: 'a/b' }, { runId: '' }]) {
+    writeJsonAtomic(runFile, { ...good, ...bad }); // not writeRun: it would write to the bad path
+    const codes = [() => finishRun(root, d), () => renderVideo(root, d), () => extractStills(root, 4, d), () => installDeps(root, d),
+      () => stageRun(root, 'script', d), () => failRun(root, 'x', d)].map(code);
+    expect(codes).toEqual(Array(6).fill('RUN_CORRUPT'));
+  }
+  expect(fs.existsSync(keep)).toBe(true);
+  expect(fs.existsSync(path.join(projAbs(root), 'node_modules'))).toBe(true);
+  expect(fs.existsSync(path.join(root, 'dashboard', 'runs'))).toBe(false); // nothing was written outside the project either
+  expect(readActiveRun(root)).not.toBeNull();
+});
+it('render menghapus video lama run ini sebelum render, sehingga render gagal tidak meninggalkan file lama', () => {
+  const { root, d, runId } = setup({ spawnStatus: 1, probe: GOOD });
+  writeVideo(root, runId, 'dari render sebelumnya');
+  expect(() => renderVideo(root, d)).toThrow(expect.objectContaining({ code: 'RENDER_FAILED' }));
+  const video = path.join(projAbs(root), 'out', `${runId}.mp4`);
+  expect(fs.existsSync(video)).toBe(false);
+  expect(finishRun(root, d)).toMatchObject({ status: 'failed', error: `File video out/${runId}.mp4 tidak ada.` });
+  // the video of another run in out/ is not touched
+  const other = path.join(projAbs(root), 'out', 'rem.mp4'); fs.writeFileSync(other, 'lama');
+  const b = setup({ spawnStatus: 1 }); fs.mkdirSync(path.join(projAbs(b.root), 'out'), { recursive: true });
+  fs.writeFileSync(path.join(projAbs(b.root), 'out', 'rem.mp4'), 'lama');
+  expect(() => renderVideo(b.root, b.d)).toThrow(expect.objectContaining({ code: 'RENDER_FAILED' }));
+  expect(fs.existsSync(path.join(projAbs(b.root), 'out', 'rem.mp4'))).toBe(true);
+});
+it('render tanpa dependensi tidak menghapus video lama', () => {
+  const { root, d, runId } = setup({});
+  writeVideo(root, runId, 'lama'); fs.rmSync(cliAbs(root));
+  expect(code(() => renderVideo(root, d))).toBe('DEPS_MISSING');
+  expect(fs.existsSync(path.join(projAbs(root), 'out', `${runId}.mp4`))).toBe(true);
+});
+it('stage done lalu finish mencatat satu tahap done', () => {
+  const { root, d, runId } = setup({ probe: GOOD });
+  stageRun(root, 'done', d); writeVideo(root, runId, 'data');
+  expect(finishRun(root, d)).toMatchObject({ status: 'success' });
+  const run = readRun(root, 'halo', runId).value;
+  expect(run.stages.map(s => [s.name, s.endedAt !== null])).toEqual([['setup', true], ['done', true]]);
+  expect(run).toMatchObject({ stage: 'done', status: 'success', endedAt: at('2026-10-24T01:53:00').toISOString() });
+  expect(runSchema.safeParse(run).success).toBe(true);
 });
