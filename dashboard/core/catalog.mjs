@@ -83,8 +83,13 @@ const SECTIONS = {
     conv: (id) => `.claude/skills/${id}`,
     scan: (root) => new Map(dirNames(root, '.claude', 'skills')
       .filter((id) => fileNames(root, '.claude', 'skills', id).includes('SKILL.md'))
-      // The folder name is the id, not frontmatter `name`: .claude/skills/remotion-official/ says "remotion-best-practices".
-      .map((id) => [id, { path: `.claude/skills/${id}`, description: frontmatter(root, '.claude', 'skills', id, 'SKILL.md').description }])),
+      // The folder name stays the id (it is the registry key). skillName is what the Skill tool and hook events use:
+      // .claude/skills/remotion-official/ is invoked as "remotion-best-practices".
+      .map((id) => {
+        const fm = frontmatter(root, '.claude', 'skills', id, 'SKILL.md');
+        return [id, { path: `.claude/skills/${id}`, description: fm.description, skillName: fm.name || id }];
+      })),
+    extra: (f, r, id) => ({ skillName: f?.skillName ?? id }),
   },
   commands: {
     conv: (id) => `.claude/commands/${id}.md`,
@@ -142,7 +147,7 @@ function buildItems(root, reg, registryOk, { conv, scan, extra }) {
       requires: str(r?.requires),
       options: r?.options ?? null,
       bestFor: str(r?.bestFor),
-      ...extra?.(f, r),
+      ...extra?.(f, r, id),
     };
   });
 }

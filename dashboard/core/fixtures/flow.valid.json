@@ -17,7 +17,7 @@
   ],
   "audio": { "voiceover": { "enabled": false }, "music": { "enabled": false }, "captions": { "enabled": false } },
   "references": [ { "kind": "example", "id": "hello-world" }, { "kind": "transition", "id": "zoomBlur" } ],
-  "skills": ["remotion-official"],
+  "skills": ["remotion-best-practices"],
   "approval": "auto",
   "notes": "Ikuti struktur contoh hello-world: judul, poin, angka, penutup."
 }
