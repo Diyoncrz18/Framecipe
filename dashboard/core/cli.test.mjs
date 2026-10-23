@@ -11,6 +11,7 @@ it('CLI start, stage, status dengan VIDEO_REPO_ROOT', () => {
   const run = (...a) => spawnSync(process.execPath, [bin, ...a], { env, encoding: 'utf8' });
   const s = run('start', '--flow', 'contoh-penjelasan', '--topic', 'Halo Dunia');
   expect(s.status).toBe(0); expect(JSON.parse(s.stdout).project).toBe('halo-dunia');
+  expect(s.stderr).toBe(''); // stderr is reserved for error messages: no Node DEP0190 warning from the claude version probe
   const bad = run('stage', 'nope');
   expect(bad.status).toBe(1); expect(bad.stderr).toContain('Tahap "nope" tidak dikenal.');
   expect(JSON.parse(run('status').stdout).active.project).toBe('halo-dunia');

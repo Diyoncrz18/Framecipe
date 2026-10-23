@@ -18,9 +18,12 @@ const localDate = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.
 // Ids from the command line end up in paths: only plain names pass ('..', '/', '\' do not).
 const isPlainId = (id) => typeof id === 'string' && /^[\w-]+$/.test(id);
 
-// Constant arguments, so the shell the Windows .cmd shim needs is safe here (the one allowed exception to no-shell).
+// Constant command, so the shell the Windows .cmd shim needs is safe here (the one allowed exception to no-shell).
+// On Windows it is one string, not command + args: Node 24 prints DEP0190 to stderr for args with shell: true,
+// and stderr must stay reserved for run.mjs error messages.
 export function detectClaudeVersion() {
-  const r = spawnSync('claude', ['--version'], { shell: process.platform === 'win32', encoding: 'utf8', timeout: 5000 });
+  const opts = { encoding: 'utf8', timeout: 5000 };
+  const r = process.platform === 'win32' ? spawnSync('claude --version', { ...opts, shell: true }) : spawnSync('claude', ['--version'], opts);
   return /\d+\.\d+\.\d+/.exec(r.stdout ?? '')?.[0] ?? null;
 }
 
@@ -95,7 +98,10 @@ export function startRun(root, input, deps = defaultDeps) {
     if (live && now - lastActivityAt(root, live) <= deps.staleMs) {
       throw coded('ACTIVE_RUN', `Masih ada run aktif ${live.runId} (proyek ${live.project}). Selesaikan dengan finish atau fail, atau tunggu 15 menit tanpa aktivitas.`);
     }
-    if (live) writeRun(root, { ...live, status: 'abandoned', endedAt: nowIso, error: { stage: live.stage, message: 'Tidak ada aktivitas lebih dari 15 menit.' } });
+    if (live) {
+      closeOpenStages(live, nowIso); // a terminal run has no open stage, same as failRun
+      writeRun(root, { ...live, status: 'abandoned', waitReason: null, endedAt: nowIso, error: { stage: live.stage, message: 'Tidak ada aktivitas lebih dari 15 menit.' } });
+    }
     clearActiveRun(root); // also drops a marker whose run is gone or already finished
   }
 

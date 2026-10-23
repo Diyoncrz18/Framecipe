@@ -41,8 +41,12 @@ it('start ditolak saat ada run aktif yang masih hidup', () => {
 });
 it('start setelah run basi menandai run lama abandoned', () => {
   const root = makeFixtureRepo(); const a = startRun(root, { flow: 'contoh-penjelasan', topic: 'A' }, deps(at('2026-10-24T01:53:00')));
+  waitRun(root, 'review naskah'); // abandoned while waiting: the wait reason must not outlive the run
   startRun(root, { flow: 'contoh-penjelasan', topic: 'B' }, deps(at('2026-10-24T02:09:01')));
-  expect(readRun(root, 'a', a.runId).value).toMatchObject({ status: 'abandoned', error: { message: 'Tidak ada aktivitas lebih dari 15 menit.' } });
+  const old = readRun(root, 'a', a.runId).value;
+  expect(old).toMatchObject({ status: 'abandoned', waitReason: null, endedAt: at('2026-10-24T02:09:01').toISOString(),
+    error: { stage: 'setup', message: 'Tidak ada aktivitas lebih dari 15 menit.' } });
+  expect(old.stages.every((s) => s.endedAt === old.endedAt)).toBe(true); // a terminal run has no open stage, same as failRun
 });
 it('start dari permintaan menandai permintaan diambil', () => {
   const root = makeFixtureRepo();
