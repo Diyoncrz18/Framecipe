@@ -1,0 +1,55 @@
+{
+  "name": "Digital Samba",
+  "description": "Digital Samba brand - European video conferencing platform",
+  "version": "1.0.0",
+  "website": "https://www.digitalsamba.com",
+
+  "colors": {
+    "primary": "#ea580c",
+    "primaryLight": "#fb923c",
+    "primaryDark": "#c2410c",
+    "accent": "#3771e0",
+    "textDark": "#1e293b",
+    "textMedium": "#334155",
+    "textLight": "#64748b",
+    "bgLight": "#ffffff",
+    "bgAlt": "#fafafa",
+    "bgDark": "#1a1a2e",
+    "bgOverlay": "rgba(255, 255, 255, 0.95)",
+    "divider": "#e2e8f0",
+    "shadow": "rgba(0, 0, 0, 0.12)"
+  },
+
+  "fonts": {
+    "primary": "Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+    "mono": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, monospace"
+  },
+
+  "spacing": {
+    "xs": 8,
+    "sm": 16,
+    "md": 24,
+    "lg": 48,
+    "xl": 80,
+    "xxl": 120
+  },
+
+  "borderRadius": {
+    "sm": 6,
+    "md": 10,
+    "lg": 16
+  },
+
+  "typography": {
+    "h1": { "size": 88, "weight": 700 },
+    "h2": { "size": 72, "weight": 700 },
+    "h3": { "size": 48, "weight": 600 },
+    "body": { "size": 44, "weight": 400 },
+    "label": { "size": 34, "weight": 600, "letterSpacing": 2 }
+  },
+
+  "assets": {
+    "logo": "assets/ds-logo.png",
+    "logoLight": "assets/ds-logo.png"
+  }
+}

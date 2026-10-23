@@ -1,0 +1,1 @@
+You can now hide tiles in recordings by role. Turn it on, pick the roles to leave out, and only the people you choose appear on video. Audio and shared content are still recorded for everyone.

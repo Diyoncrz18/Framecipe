@@ -1,0 +1,22 @@
+{
+  "name": "release-649",
+  "version": "1.0.0",
+  "description": "Synthetic release video for Digital Samba 649",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Release649 out/release-649.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.529",
+    "@remotion/paths": "4.0.529",
+    "@remotion/shapes": "4.0.529",
+    "@remotion/transitions": "4.0.529",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remotion": "4.0.529"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "voiceId": "YOUR_VOICE_ID_HERE",
+  "description": "Professional narrator voice for Digital Samba videos",
+  "settings": {
+    "stability": 0.75,
+    "similarityBoost": 0.9,
+    "style": 0.15,
+    "useSpeakerBoost": true
+  },
+  "model": "eleven_multilingual_v2",
+  "notes": "Use a clear, professional tone. European English preferred."
+}

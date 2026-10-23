@@ -1,0 +1,1 @@
+Your app can bookmark a live recording through the SDK, with the new add recording bookmark method.

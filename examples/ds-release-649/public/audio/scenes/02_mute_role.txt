@@ -1,0 +1,1 @@
+Moderators can mute a whole role at once, or turn off all of its cameras, straight from the participants panel. Other roles aren't affected.

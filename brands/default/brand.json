@@ -1,0 +1,46 @@
+{
+  "name": "Default",
+  "description": "Clean, professional brand profile with orange accent",
+  "version": "1.0.0",
+
+  "colors": {
+    "primary": "#ea580c",
+    "primaryLight": "#fb923c",
+    "textDark": "#1e293b",
+    "textMedium": "#334155",
+    "textLight": "#64748b",
+    "bgLight": "#ffffff",
+    "bgDark": "#1a1a2e",
+    "bgOverlay": "rgba(255, 255, 255, 0.95)",
+    "divider": "#e2e8f0",
+    "shadow": "rgba(0, 0, 0, 0.12)"
+  },
+
+  "fonts": {
+    "primary": "system-ui, -apple-system, BlinkMacSystemFont, \"SF Pro Display\", sans-serif",
+    "mono": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, monospace"
+  },
+
+  "spacing": {
+    "xs": 8,
+    "sm": 16,
+    "md": 24,
+    "lg": 48,
+    "xl": 80,
+    "xxl": 120
+  },
+
+  "borderRadius": {
+    "sm": 7,
+    "md": 12,
+    "lg": 16
+  },
+
+  "typography": {
+    "h1": { "size": 88, "weight": 700 },
+    "h2": { "size": 72, "weight": 700 },
+    "h3": { "size": 48, "weight": 700 },
+    "body": { "size": 44, "weight": 400 },
+    "label": { "size": 34, "weight": 500, "letterSpacing": 3 }
+  }
+}
