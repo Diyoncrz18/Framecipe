@@ -78,3 +78,9 @@ export function makeFixtureRepo() {
   write(root, 'flows/contoh-penjelasan/flow.json', fixtureFlow());
   return root;
 }
+
+// Without a trailing Z the time is local (use it when a runId or archive name is asserted, they use local time);
+// with Z it is UTC (use it when an ISO string is asserted).
+export function at(iso) {
+  return new Date(iso);
+}

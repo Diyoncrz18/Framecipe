@@ -129,12 +129,12 @@ export const runSchema = z.object({
   stages: z.array(z.object({ name: z.enum(STAGES), startedAt: iso, endedAt: iso.nullable() })),
   startedAt: iso,
   endedAt: iso.nullable(),
-  lastActivityAt: iso.optional(), // PRD 9.4 lists it, the Task 3 sample run omits it: optional until run-ops (Task 6) always writes it
+  lastActivityAt: iso.optional(), // intentionally optional: run-store.lastActivityAt computes it from stages and session events, run.json need not store it
   output: z.object({
     file: z.string(), durationSeconds: z.number(), width: z.number(), height: z.number(), fps: z.number(), sizeBytes: z.number(),
   }).nullable(),
   warnings: z.array(z.string()),
-  error: z.string().nullable(),
+  error: z.object({ stage: z.enum(STAGES), message: z.string() }).nullable(), // set by fail and by the stale-run sweep
 });
 
 export const eventSchema = z.object({
