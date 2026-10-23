@@ -1,0 +1,118 @@
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# YouTube OAuth token cache (cached refresh tokens — long-lived channel-upload secrets)
+_internal/.youtube/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# Build outputs
+dist/
+build/
+out/
+*.mp4
+*.webm
+*.gif
+*.mov
+
+# But DO track the README banner assets
+!assets/banner/**
+
+# And the two ds-crt-stinger reference assets: the LTX-2 boot clip costs ~$0.30
+# + 4 min to regenerate, and the GIF is the example's README preview.
+!examples/ds-crt-stinger/ds_boot_astro.mp4
+!examples/ds-crt-stinger/ds_stinger_astro.gif
+
+# Remotion
+.remotion/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Voice samples (may contain personal audio). Recursive: clone references are
+# often filed per-voice (assets/voices/<name>/ref.wav), which a single-level
+# glob would miss. Extension-scoped so metadata (README, manifests) stays tracked.
+assets/voices/**/*.mp3
+assets/voices/**/*.wav
+assets/voices/**/*.m4a
+assets/voices/**/*.flac
+assets/voices/**/*.ogg
+
+# Projects directory (user's local video work - not part of toolkit)
+projects/
+
+# Scratch directory (local experiment output — generated images, test renders,
+# one-off scripts). Tools that write to the repo root should target scratch/.
+scratch/
+
+# Keep directory structure
+!projects/.gitkeep
+
+# Examples directory IS tracked (curated showcase projects)
+!examples/
+
+# But ignore large media files in examples
+examples/*/public/demos/*.mp4
+examples/*/public/audio/*.mp3
+examples/*/node_modules/
+examples/*/.remotion/
+examples/*/out/
+
+# moviepy examples — auto-generated PIL text caches and intermediate renders
+examples/*/.text_cache/
+examples/*/chart_anim.mp4
+
+# Playwright recordings and run artifacts (videos, screenshots, audit JSON)
+playwright/output/
+playwright/recordings/*.mp4
+.ai_dev/
+
+# Kiro CLI generated skills/steering (scripts/migrate_to_kiro.py)
+.kiro/

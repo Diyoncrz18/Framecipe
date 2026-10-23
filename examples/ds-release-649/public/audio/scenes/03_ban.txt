@@ -1,0 +1,1 @@
+Bans now default to five minutes, and Permanently has moved to the bottom of the list, so one slip doesn't lock someone out for good.

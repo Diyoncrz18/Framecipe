@@ -1,0 +1,26 @@
+{
+  "name": "sprint-review-v2-template",
+  "version": "1.0.0",
+  "description": "Film-quality sprint review video template with cinematic transitions and animations",
+  "scripts": {
+    "studio": "npx remotion studio",
+    "render": "npx remotion render src/index.ts SprintReviewV2 out/sprint-review.mp4",
+    "render:preview": "npx remotion render src/index.ts SprintReviewV2 out/preview.mp4 --scale=0.5",
+    "build": "npx remotion bundle src/index.ts",
+    "upgrade": "npx remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.529",
+    "@remotion/google-fonts": "4.0.529",
+    "@remotion/paths": "4.0.529",
+    "@remotion/shapes": "4.0.529",
+    "@remotion/transitions": "4.0.529",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remotion": "4.0.529"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "typescript": "^5.0.0"
+  }
+}
