@@ -45,9 +45,14 @@ function activeRunOrNull(root) {
   return r.ok && ['running', 'waiting'].includes(r.value.status) ? r.value : null;
 }
 
+// project and runId come out of run.json, a file people can edit, and end up in paths (and in a recursive delete at finish):
+// only plain names pass, so no '..' can aim a write or delete at another folder of the repo.
 function requireActive(root) {
   const run = activeRunOrNull(root);
   if (!run) throw coded('NO_ACTIVE_RUN', 'Tidak ada run aktif. Mulai dengan: node dashboard/bin/run.mjs start ...');
+  if (!isPlainId(run.project) || !isPlainId(run.runId)) {
+    throw coded('RUN_CORRUPT', 'run.json milik run aktif rusak (project atau runId tidak valid). Hapus .dashboard/active-run.json, lalu mulai run baru.');
+  }
   return run;
 }
 
@@ -237,6 +242,7 @@ export function renderVideo(root, deps = defaultDeps) {
   const cli = remotionCliPath(proj);
   const shared = findBrowserExe(sharedBrowserDir(root));
   const out = `out/${run.runId}.mp4`;
+  fs.rmSync(path.join(proj, out), { force: true }); // an older video of this run must not survive a failed re-render and pass finish
   const args = [cli, 'render', ...(entry ? [entry] : []), compositionId, out, ...extraArgs, ...(shared ? [`--browser-executable=${shared}`] : [])];
   const r = deps.spawnSync(process.execPath, args, { cwd: proj, stdio: 'inherit' });
   if (r.status !== 0) throw coded('RENDER_FAILED', `Render gagal (kode ${exitCode(r)}). Lihat output di atas.`);
@@ -315,7 +321,7 @@ export function finishRun(root, deps = defaultDeps) {
   closeOpenStages(run, iso);
   const output = { file, durationSeconds, width, height, fps, sizeBytes };
   const done = { ...run, status: 'success', stage: 'done', waitReason: null, endedAt: iso, output, warnings,
-    stages: [...run.stages, { name: 'done', startedAt: iso, endedAt: iso }] };
+    stages: run.stage === 'done' ? run.stages : [...run.stages, { name: 'done', startedAt: iso, endedAt: iso }] }; // `stage done` already added one
   writeRun(root, done);
   updateProject(root, run.project, (p) => withSession({ ...p, phase: PHASE_BY_STAGE.done, latestRun: run.runId, updated: iso }, now, `Run ${run.runId} sukses (${d} dtk).`));
   clearActiveRun(root);
