@@ -36,3 +36,16 @@ it('CLI: kode error di stdout, wait dan fail lewat --reason, topik dengan karakt
   expect(JSON.parse(run('fail', '--reason', 'selesai uji').stdout)).toEqual({ status: 'failed' });
   expect(JSON.parse(run('status').stdout)).toEqual({ active: null });
 });
+it('CLI: finish gagal keluar 1 dengan alasan di JSON; stills dan render menolak argumen dan dependensi yang kurang', () => {
+  const root = makeFixtureRepo(); const env = { ...process.env, VIDEO_REPO_ROOT: root };
+  const run = (...a) => spawnSync(process.execPath, [bin, ...a], { env, encoding: 'utf8' });
+  const runId = JSON.parse(run('start', '--flow', 'contoh-penjelasan', '--topic', 'Halo').stdout).runId;
+  expect(JSON.parse(run('stills', '--count', '0').stdout)).toEqual({ error: 'BAD_ARGS' });
+  expect(JSON.parse(run('stills', '--count', 'abc').stdout)).toEqual({ error: 'BAD_ARGS' });
+  expect(JSON.parse(run('stills').stdout)).toEqual({ error: 'DEPS_MISSING' }); // default count 4 is valid: it gets as far as the missing Remotion CLI
+  expect(JSON.parse(run('render').stdout)).toEqual({ error: 'DEPS_MISSING' });
+  const f = run('finish');
+  expect(f.status).toBe(1);
+  expect(JSON.parse(f.stdout)).toEqual({ status: 'failed', output: null, warnings: [], error: `File video out/${runId}.mp4 tidak ada.` });
+  expect(JSON.parse(run('status').stdout)).toEqual({ active: null });
+});
