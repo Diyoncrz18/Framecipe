@@ -55,6 +55,8 @@ it('runSchema dan eventSchema', () => {
     startedAt: '2026-10-24T01:53:00.000Z', endedAt: null, output: null, warnings: [], error: null };
   expect(runSchema.safeParse(run).success).toBe(true);
   expect(runSchema.safeParse({ ...run, status: 'done' }).success).toBe(false);
+  expect(runSchema.safeParse({ ...run, status: 'failed', error: { stage: 'render', message: 'render gagal' } }).success).toBe(true);
+  expect(runSchema.safeParse({ ...run, status: 'failed', error: 'render gagal' }).success).toBe(false);
   expect(eventSchema.safeParse({ ts: '2026-10-24T01:53:05.120Z', sessionId: 's1', runId: null, type: 'skill',
     tool: 'Skill', summary: 'remotion-official', ok: true }).success).toBe(true);
 });
