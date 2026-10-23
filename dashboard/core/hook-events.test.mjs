@@ -4,7 +4,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { hookMain, stripRtk, toEvent } from './hook-events.mjs';
 import { readJsonLines } from './jsonfile.mjs';
-import { readActiveRun, readRun, sessionEventsPath } from './run-store.mjs';
+import { readActiveRun, readRun, runPaths, sessionEventsPath, writeActiveRun } from './run-store.mjs';
 import { defaultDeps, startRun } from './run-ops.mjs';
 import { makeFixtureRepo, makeTempRoot } from './test-utils.mjs';
 
@@ -38,9 +38,11 @@ describe('toEvent: tabel pemetaan', () => {
     expect(toEvent({ hook_event_name: 'PreToolUse', session_id: 's1', tool_name: 'Bash', tool_use_id: 't1',
       tool_input: { command: 'rtk npm run render' } }, '/r', now)).toMatchObject({ type: 'command', phase: 'start', summary: 'npm run render', toolUseId: 't1' });
   });
-  it('PreToolUse Agent', () => {
-    expect(ev({ hook_event_name: 'PreToolUse', tool_name: 'Agent', tool_use_id: 't2', tool_input: { description: 'Cari berkas' } }))
-      .toEqual({ ...base, tool: 'Agent', type: 'agent', phase: 'start', toolUseId: 't2', summary: 'Cari berkas' });
+  it('PreToolUse Agent (dan Task, nama lama)', () => {
+    for (const tool of ['Agent', 'Task']) {
+      expect(ev({ hook_event_name: 'PreToolUse', tool_name: tool, tool_use_id: 't2', tool_input: { description: 'Cari berkas' } }))
+        .toEqual({ ...base, tool, type: 'agent', phase: 'start', toolUseId: 't2', summary: 'Cari berkas' });
+    }
   });
   it('PreToolUse lainnya: null', () => {
     expect(ev({ hook_event_name: 'PreToolUse', tool_name: 'Read', tool_input: { file_path: 'a' } })).toBeNull();
@@ -68,9 +70,11 @@ describe('toEvent: tabel pemetaan', () => {
     const outside = path.join(path.dirname(root), 'elsewhere.txt');
     expect(ev({ hook_event_name: 'PostToolUse', tool_name: 'Write', tool_input: { file_path: outside } }, root).summary).toBe(outside);
   });
-  it('PostToolUse Agent', () => {
-    expect(ev({ hook_event_name: 'PostToolUse', tool_name: 'Agent', tool_use_id: 't2', tool_input: { description: 'Cari berkas' } }))
-      .toEqual({ ...base, tool: 'Agent', type: 'agent', phase: 'end', ok: true, toolUseId: 't2', summary: 'Cari berkas' });
+  it('PostToolUse Agent (dan Task, nama lama)', () => {
+    for (const tool of ['Agent', 'Task']) {
+      expect(ev({ hook_event_name: 'PostToolUse', tool_name: tool, tool_use_id: 't2', tool_input: { description: 'Cari berkas' } }))
+        .toEqual({ ...base, tool, type: 'agent', phase: 'end', ok: true, toolUseId: 't2', summary: 'Cari berkas' });
+    }
   });
   it('PostToolUse lainnya', () => {
     expect(ev({ hook_event_name: 'PostToolUse', tool_name: 'Read', tool_input: { file_path: 'a' } }))
@@ -79,6 +83,9 @@ describe('toEvent: tabel pemetaan', () => {
   it('kegagalan tool memakai baris pertama error', () => {
     expect(toEvent({ hook_event_name: 'PostToolUseFailure', session_id: 's1', tool_name: 'Bash',
       tool_input: { command: 'npm test' }, error: 'Exit code 1\nError: x' }, '/r', now)).toMatchObject({ type: 'command', ok: false, error: 'Exit code 1' });
+  });
+  it('baris pertama error juga untuk akhir baris CRLF', () => {
+    expect(ev({ hook_event_name: 'PostToolUseFailure', tool_name: 'Bash', tool_input: { command: 'x' }, error: 'Exit code 1\r\nError: x' }).error).toBe('Exit code 1');
   });
   it('PostToolUseFailure untuk tool lain mengikuti pemetaan PostToolUse', () => {
     expect(ev({ hook_event_name: 'PostToolUseFailure', tool_name: 'Read', tool_input: {}, error: 'File not found\nmore' }))
@@ -107,6 +114,12 @@ describe('toEvent: tabel pemetaan', () => {
 });
 
 describe('hookMain', () => {
+  const startedRepo = () => {
+    const root = makeFixtureRepo();
+    return { root, r: startRun(root, { flow: 'contoh-penjelasan', topic: 'Halo' }, { ...defaultDeps, claudeVersion: () => null }) };
+  };
+  const send = (root, payload) => hookMain(root, JSON.stringify(payload), now);
+  const bash = (hook_event_name, session_id, command, extra = {}) => ({ hook_event_name, session_id, tool_name: 'Bash', tool_input: { command }, ...extra });
   it('hookMain mengikat sesi ke run aktif lewat perintah start', () => {
     const root = makeFixtureRepo();
     const r = startRun(root, { flow: 'contoh-penjelasan', topic: 'Halo' }, { ...defaultDeps, claudeVersion: () => null });
@@ -129,6 +142,45 @@ describe('hookMain', () => {
     expect(readActiveRun(root).sessionId).toBe('s1');
     expect(readJsonLines(sessionEventsPath(root, 's1')).items.map((e) => e.runId)).toEqual([r.runId, r.runId]);
     expect(readJsonLines(sessionEventsPath(root, 's2')).items[0].runId).toBeNull();
+  });
+  it('start yang gagal tidak mengikat sesi', () => {
+    const { root, r } = startedRepo();
+    send(root, bash('PostToolUseFailure', 's1', 'node dashboard/bin/run.mjs start --request abc', { error: 'Exit code 1' }));
+    expect(readActiveRun(root).sessionId).toBeNull();
+    expect(readRun(root, 'halo', r.runId).value.sessionId).toBeNull();
+    expect(readJsonLines(sessionEventsPath(root, 's1')).items).toMatchObject([{ type: 'command', ok: false, runId: null }]);
+    send(root, bash('PostToolUse', 's2', 'node dashboard/bin/run.mjs start --request abc')); // a later successful start still binds
+    expect(readActiveRun(root).sessionId).toBe('s2');
+  });
+  it('teks yang hanya menyebut run.mjs start tidak mengikat sesi', () => {
+    const { root } = startedRepo();
+    for (const command of ['grep -n "run.mjs start" docs/x.md', 'echo node dashboard/bin/run.mjs start', 'cat dashboard/bin/run.mjs start', 'npm test && node dashboard/bin/run.mjs start']) {
+      send(root, bash('PostToolUse', 's1', command));
+    }
+    expect(readActiveRun(root).sessionId).toBeNull();
+    expect(readJsonLines(sessionEventsPath(root, 's1')).items).toHaveLength(4);
+  });
+  it('bentuk perintah start yang dijalankan (path berspasi, kutip, rtk) mengikat sesi', () => {
+    for (const command of ['rtk node dashboard/bin/run.mjs start --request a', 'node "C:/MY FOLDER/toolkit/dashboard/bin/run.mjs" start --request a',
+      "node 'C:/MY FOLDER/toolkit/dashboard/bin/run.mjs' start --request a", 'node dashboard\\bin\\run.mjs start --request a']) {
+      const { root } = startedRepo();
+      send(root, bash('PostToolUse', 's1', command));
+      expect(readActiveRun(root).sessionId, command).toBe('s1');
+    }
+  });
+  it('gagal mengikat tidak menghilangkan event; run.json rusak tetap boleh mengikat', () => {
+    const { root, r } = startedRepo();
+    const marker = readActiveRun(root);
+    writeActiveRun(root, { ...marker, project: '../..' }); // run.json aims outside the repo: the bind throws
+    send(root, bash('PostToolUse', 's1', 'node dashboard/bin/run.mjs start --request a'));
+    expect(readJsonLines(sessionEventsPath(root, 's1')).items).toMatchObject([{ type: 'command', runId: null }]);
+    expect(readActiveRun(root).sessionId).toBeNull();
+    expect(fs.readFileSync(path.join(root, '.dashboard', 'hook-errors.log'), 'utf8')).toContain('outside the repo root');
+    writeActiveRun(root, marker);
+    fs.writeFileSync(runPaths(root, 'halo', r.runId).runFile, '{ rusak');
+    send(root, bash('PostToolUse', 's1', 'node dashboard/bin/run.mjs start --request a'));
+    expect(readActiveRun(root).sessionId).toBe('s1');
+    expect(readJsonLines(sessionEventsPath(root, 's1')).items.at(-1).runId).toBe(r.runId);
   });
   it('tanpa run aktif: event dicatat, event null dilewati, tanpa session_id masuk log galat', () => {
     const root = makeFixtureRepo();
