@@ -116,3 +116,6 @@ playwright/recordings/*.mp4
 
 # Kiro CLI generated skills/steering (scripts/migrate_to_kiro.py)
 .kiro/
+
+# Dashboard runtime data (run state, hook events, shared render browser)
+.dashboard/
