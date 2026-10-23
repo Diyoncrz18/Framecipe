@@ -16,6 +16,16 @@ it('menggabungkan registry dan folder', () => {
   expect(c.skills.find(s => s.id === 'bar')).toMatchObject({ source: 'folder', mismatch: 'unregistered' });
   expect(c.brands.find(b => b.id === 'other').mismatch).toBe('unregistered');
 });
+it('skillName: nama frontmatter, atau id folder bila tidak ada', () => {
+  const root = makeFixtureRepo();
+  fs.mkdirSync(path.join(root, '.claude', 'skills', 'baz'));
+  fs.writeFileSync(path.join(root, '.claude', 'skills', 'baz', 'SKILL.md'), '---\nname: baz-invoked\ndescription: Baz\n---\n');
+  const regFile = path.join(root, '_internal', 'toolkit-registry.json');
+  const reg = JSON.parse(fs.readFileSync(regFile, 'utf8')); reg.skills.ghost = { path: '.claude/skills/ghost/', description: 'No folder' };
+  fs.writeFileSync(regFile, JSON.stringify(reg));
+  const c = readCatalog(root);
+  expect(c.skills.map(s => [s.id, s.skillName])).toEqual([['bar', 'bar'], ['baz', 'baz-invoked'], ['foo', 'foo'], ['ghost', 'ghost']]);
+});
 it('registry rusak tidak menjatuhkan katalog', () => {
   const root = makeFixtureRepo(); fs.writeFileSync(path.join(root, '_internal', 'toolkit-registry.json'), '{');
   const c = readCatalog(root);
@@ -52,10 +62,12 @@ it('brand: logo, dan brand.json rusak ditandai', () => {
   expect(c.brands.find(b => b.id === 'default')).toMatchObject({ logo: 'brands/default/assets/logo.png', corrupt: false });
   expect(c.brands.find(b => b.id === 'other')).toMatchObject({ brand: null, corrupt: true, logo: null });
 });
+// Guard from the plan: tests that read the real repo are skipped when its registry file is absent (e.g. a checkout without the toolkit).
 it.skipIf(!fs.existsSync(path.join(realRoot, '_internal', 'toolkit-registry.json')))('repo asli: fakta Lampiran A PRD', () => {
   const c = readCatalog(realRoot);
   expect(c.templates.find(t => t.id === 'sprint-review')).toMatchObject({ engine: 'remotion', aspectRatio: '16:9' });
   expect(c.templates.find(t => t.id === 'concept-explainer-short').engine).toBe('python');
   expect(c.templates.find(t => t.id === 'ai-engineering-review').mismatch).toBe('unregistered');
   expect(c.examples.find(e => e.id === 'the-space-between').mismatch).toBe('missing-folder');
+  expect(c.skills.find(s => s.id === 'remotion-official')).toMatchObject({ skillName: 'remotion-best-practices' });
 });

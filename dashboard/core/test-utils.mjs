@@ -73,7 +73,7 @@ export function makeFixtureRepo() {
   write(root, 'examples/ex-a/out/v.mp4', 'v');
   fs.mkdirSync(path.join(root, 'examples', 'unreg'), { recursive: true });
   write(root, '.claude/skills/foo/SKILL.md', '---\nname: foo\ndescription: Foo skill\n---\n# Foo\n');
-  write(root, '.claude/skills/bar/SKILL.md', '---\nname: bar\ndescription: Bar skill\n---\n# Bar\n');
+  write(root, '.claude/skills/bar/SKILL.md', '---\ndescription: Bar skill\n---\n# Bar\n');
   write(root, '.env', 'ELEVENLABS_API_KEY=abc\nRUNPOD_API_KEY=\n# IDEOGRAM_API_KEY=x\n');
   write(root, 'flows/contoh-penjelasan/flow.json', fixtureFlow());
   return root;
