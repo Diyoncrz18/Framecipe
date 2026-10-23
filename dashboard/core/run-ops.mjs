@@ -1,5 +1,6 @@
-// Run lifecycle behind bin/run.mjs: start, stage, wait, fail, status.
+// Run lifecycle behind bin/run.mjs: start, stage, wait, fail, status, install, render, stills, finish.
 // Text the user typed (topic, notes) is only ever written to files, never passed as a command argument (NFR-04).
+// Programs run through process.execPath with an args array and no shell: npm-cli.js for npm, remotion-cli.js for render/ffmpeg.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -8,7 +9,7 @@ import { PHASE_BY_STAGE, STAGES, checkFlowAgainstRepo, parseFlow, requestSchema 
 import { newRunId, randomHex, slugify, uniqueSlug } from './ids.mjs';
 import { readJson, writeJsonAtomic } from './jsonfile.mjs';
 import { isGitWorktree, resolveInside, toRepoRelative } from './paths.mjs';
-import { probeVideo } from './remotion.mjs';
+import { findBrowserExe, parseRenderScript, probeVideo, remotionCliPath, sharedBrowserDir } from './remotion.mjs';
 import { clearActiveRun, lastActivityAt, readActiveRun, readRun, requestPath, runPaths, writeActiveRun, writeRun } from './run-store.mjs';
 
 const coded = (code, message) => Object.assign(new Error(message), { code });
@@ -58,6 +59,8 @@ function updateProject(root, project, change) {
   const r = readJson(file);
   if (r.ok) writeJsonAtomic(file, change(r.value));
 }
+
+const withSession = (p, now, summary) => ({ ...p, sessions: [...(Array.isArray(p.sessions) ? p.sessions : []), { date: localDate(now), summary }] });
 
 function findRun(root, runId) {
   if (isPlainId(runId)) {
@@ -142,8 +145,7 @@ export function startRun(root, input, deps = defaultDeps) {
   const paths = runPaths(root, project, runId);
 
   if (old) {
-    updateProject(root, project, (p) => ({ ...p, latestRun: runId, updated: nowIso,
-      sessions: [...(Array.isArray(p.sessions) ? p.sessions : []), { date: localDate(now), summary: `Perbaikan run ${old.runId} menjadi ${runId}` }] }));
+    updateProject(root, project, (p) => withSession({ ...p, latestRun: runId, updated: nowIso }, now, `Perbaikan run ${old.runId} menjadi ${runId}`));
   } else {
     const template = resolveInside(root, 'templates', flow.template);
     fs.cpSync(template, projectDir, { recursive: true, filter: (src) => !TEMPLATE_SKIP.has(path.relative(template, src)) });
@@ -187,18 +189,142 @@ export function waitRun(root, reason) {
   return { status: 'waiting' };
 }
 
-// Leaves the project's files alone, node_modules included: a retry continues from them.
-export function failRun(root, reason, deps = defaultDeps) {
-  if (!reason?.trim()) throw badArgs('--reason wajib diisi');
-  const run = requireActive(root);
+// Ends the active run as failed. Leaves the project's files alone, node_modules included: a retry continues from them.
+function failActive(root, run, message, deps) {
   const iso = deps.now().toISOString();
   closeOpenStages(run, iso);
-  writeRun(root, { ...run, status: 'failed', waitReason: null, error: { stage: run.stage, message: reason }, endedAt: iso });
+  writeRun(root, { ...run, status: 'failed', waitReason: null, error: { stage: run.stage, message }, endedAt: iso });
   clearActiveRun(root);
+}
+
+export function failRun(root, reason, deps = defaultDeps) {
+  if (!reason?.trim()) throw badArgs('--reason wajib diisi');
+  failActive(root, requireActive(root), reason, deps);
   return { status: 'failed' };
 }
 
 export function statusRun(root) {
   const run = activeRunOrNull(root);
   return { active: run && { runId: run.runId, project: run.project, stage: run.stage, status: run.status } };
+}
+
+export const npmCliPath = () => path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js');
+
+const exitCode = (r) => r.status ?? r.error?.message ?? 'tidak diketahui';
+const fileStat = (file) => fs.statSync(file, { throwIfNoEntry: false });
+const comma = (n) => String(n).replace('.', ',');
+
+// The active run and its project folder: where install, render, stills and finish work.
+function activeProject(root) {
+  const run = requireActive(root);
+  return { run, proj: resolveInside(root, 'projects', run.project) };
+}
+
+// Child output goes straight to the terminal (stdio: 'inherit'), so a failure message points at it.
+export function installDeps(root, deps = defaultDeps) {
+  const { proj } = activeProject(root);
+  const r = deps.spawnSync(process.execPath, [npmCliPath(), 'install', '--no-audit', '--no-fund', '--prefer-offline'], { cwd: proj, stdio: 'inherit' });
+  if (r.status !== 0) throw coded('INSTALL_FAILED', `npm install gagal (kode ${exitCode(r)}).`);
+  return { ok: true };
+}
+
+// Renders to out/<runId>.mp4, not the script's own output name: finish must never pick up an older video.
+// The run's status stays as it is on failure; the caller decides between retrying and fail.
+export function renderVideo(root, deps = defaultDeps) {
+  const { run, proj } = activeProject(root);
+  const pkg = readJson(path.join(proj, 'package.json'));
+  const { entry, compositionId, extraArgs } = parseRenderScript(pkg.ok ? pkg.value?.scripts?.render : undefined);
+  const cli = remotionCliPath(proj);
+  const shared = findBrowserExe(sharedBrowserDir(root));
+  const out = `out/${run.runId}.mp4`;
+  const args = [cli, 'render', ...(entry ? [entry] : []), compositionId, out, ...extraArgs, ...(shared ? [`--browser-executable=${shared}`] : [])];
+  const r = deps.spawnSync(process.execPath, args, { cwd: proj, stdio: 'inherit' });
+  if (r.status !== 0) throw coded('RENDER_FAILED', `Render gagal (kode ${exitCode(r)}). Lihat output di atas.`);
+
+  // The first render downloads Chrome into the project, and finish deletes node_modules: keep one copy for every project.
+  const downloaded = path.join(proj, 'node_modules', '.remotion', 'chrome-headless-shell');
+  if (!shared && fs.existsSync(downloaded)) {
+    const dest = resolveInside(root, '.dashboard', 'browser', 'chrome-headless-shell');
+    // shortcut: a failed copy is not reported (the video is rendered); the half copy goes, and the next render copies again.
+    try { fs.cpSync(downloaded, dest, { recursive: true }); } catch { fs.rmSync(dest, { recursive: true, force: true }); }
+  }
+  return { output: toRepoRelative(root, path.join(proj, out)) };
+}
+
+// One frame from the middle of each of `count` equal segments, for Claude to look at (and for the gallery thumbnail).
+// shortcut: frames of an earlier call with a larger count stay behind; same-count calls overwrite them.
+export function extractStills(root, count, deps = defaultDeps) {
+  if (!Number.isInteger(count) || count < 1) throw badArgs('--count harus bilangan bulat positif');
+  const { run, proj } = activeProject(root);
+  const cli = remotionCliPath(proj);
+  const video = resolveInside(root, 'projects', run.project, 'out', `${run.runId}.mp4`);
+  if (!fileStat(video)?.isFile()) throw coded('VIDEO_MISSING', `File video out/${run.runId}.mp4 tidak ada. Jalankan render dulu.`);
+  let duration;
+  try { duration = deps.probe(proj, video).durationSeconds; } catch (e) { throw coded('PROBE_FAILED', `Video tidak bisa dibaca: ${e.message}`); }
+  if (!(duration > 0)) throw coded('PROBE_FAILED', 'Durasi video 0 detik.');
+
+  const { framesDir } = runPaths(root, run.project, run.runId);
+  fs.mkdirSync(framesDir, { recursive: true });
+  const frames = [];
+  for (let i = 0; i < count; i++) {
+    const frame = path.join(framesDir, `frame-${i + 1}.jpg`);
+    const t = (((i + 0.5) * duration) / count).toFixed(2);
+    const r = deps.spawnSync(process.execPath, [cli, 'ffmpeg', '-y', '-loglevel', 'error', '-ss', t, '-i', video, '-frames:v', '1', frame],
+      { cwd: proj, encoding: 'utf8', timeout: 120000 });
+    if (r.status !== 0) throw coded('STILLS_FAILED', `ffmpeg gagal mengambil frame ${i + 1} (kode ${exitCode(r)}).${r.stderr ? ` ${r.stderr.trim()}` : ''}`);
+    frames.push(toRepoRelative(root, frame));
+  }
+  return { frames };
+}
+
+// Validates only out/<runId>.mp4 (never an older file in out/). A bad video fails the run the way failRun does, node_modules kept.
+// A good one closes the run, then deletes node_modules (688 MB per project): a retry installs them again.
+export function finishRun(root, deps = defaultDeps) {
+  const { run, proj } = activeProject(root);
+  const file = `out/${run.runId}.mp4`;
+  const abs = resolveInside(root, 'projects', run.project, 'out', `${run.runId}.mp4`);
+  const fail = (message) => {
+    failActive(root, run, message, deps);
+    return { status: 'failed', output: null, warnings: [], error: message };
+  };
+
+  const stat = fileStat(abs);
+  if (!stat?.isFile()) return fail(`File video ${file} tidak ada.`);
+  if (stat.size === 0) return fail('File video kosong (0 byte).');
+  let probed;
+  try { probed = deps.probe(proj, abs); } catch (e) { return fail(`Video tidak bisa dibaca: ${e.message}`); }
+  const { durationSeconds, width, height, fps, sizeBytes } = probed;
+  if (!(durationSeconds > 0)) return fail('Durasi video 0 detik.');
+
+  const d = comma(durationSeconds.toFixed(1));
+  const warnings = [];
+  const snapshot = readJson(runPaths(root, run.project, run.runId).flowFile);
+  const parsed = snapshot.ok ? parseFlow(snapshot.value) : null;
+  if (!parsed?.ok) {
+    warnings.push('Alur run tidak terbaca: durasi dan resolusi tidak dicek.');
+  } else {
+    const want = parsed.flow.output;
+    if (Math.abs(durationSeconds - want.targetDurationSeconds) / want.targetDurationSeconds > 0.1) {
+      warnings.push(`Durasi ${d} dtk, target ${comma(want.targetDurationSeconds)} dtk.`);
+    }
+    if (width !== want.width || height !== want.height) warnings.push(`Resolusi ${width}×${height}, alur meminta ${want.width}×${want.height}.`);
+  }
+
+  const now = deps.now();
+  const iso = now.toISOString();
+  closeOpenStages(run, iso);
+  const output = { file, durationSeconds, width, height, fps, sizeBytes };
+  const done = { ...run, status: 'success', stage: 'done', waitReason: null, endedAt: iso, output, warnings,
+    stages: [...run.stages, { name: 'done', startedAt: iso, endedAt: iso }] };
+  writeRun(root, done);
+  updateProject(root, run.project, (p) => withSession({ ...p, phase: PHASE_BY_STAGE.done, latestRun: run.runId, updated: iso }, now, `Run ${run.runId} sukses (${d} dtk).`));
+  clearActiveRun(root);
+
+  try {
+    fs.rmSync(path.join(proj, 'node_modules'), { recursive: true, force: true });
+  } catch (e) {
+    warnings.push(`node_modules tidak bisa dihapus: ${e.message}`);
+    writeRun(root, { ...done, warnings });
+  }
+  return { status: 'success', output, warnings, error: null };
 }
