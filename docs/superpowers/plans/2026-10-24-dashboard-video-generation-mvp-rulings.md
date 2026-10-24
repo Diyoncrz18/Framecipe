@@ -5,7 +5,7 @@ Dicatat oleh controller selama eksekusi rencana `2026-10-24-dashboard-video-gene
 ## Yang perlu Anda perhatikan
 - **R42 — sengaja ditunda (masih P0 di PRD tapi tidak ada di rencana):** `run.mjs start --project <slug>` (JMB-02), pemakaian tool/command di halaman Skill (SKL-03), uji integrasi PRD §14, serta pengukuran performa NFR-06 (200 proyek < 1 detik).
 - **R43 — menunggu keputusan Anda:** menambah `Task` ke matcher PreToolUse di `.claude/settings.json`; menghapus `flows/.archive/` (13 alur sisa uji terima, belum di-track git).
-- **R45(a) — follow-up yang disarankan:** run yang terakhir menunggu izin kini memblokir `start` tanpa batas waktu (sesuai JMB-05), tapi dashboard belum menawarkan "Tandai gagal" untuk status itu. Bila Claude Code mati saat prompt izin tampil, satu-satunya jalan keluar adalah menghapus `.dashboard/active-run.json`.
+- **R45(a) — sudah diperbaiki:** run yang terakhir menunggu izin tetap memblokir `start` tanpa batas waktu (sesuai JMB-05), dan kini bisa ditandai gagal dari halaman Eksekusi bila sesi Claude Code-nya sudah mati.
 - **R25 — UI hanya tema terang**, **R4 — UI diuji lewat build + cek manual** (Playwright e2e ada di P1).
 
 ## Semua keputusan

@@ -22,7 +22,7 @@ function ErrorList({ errors }: { errors: string[] }) {
   );
 }
 
-// Closes a run nobody is working on (stopped or abandoned) as failed. The server refuses any other status.
+// Closes a run nobody is working on (stopped, abandoned, or stuck at a permission prompt) as failed. The server refuses any other status.
 function MarkFailedButton({ project, runId }: { project: string; runId: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -132,7 +132,12 @@ export function RunPanel({ status, stored, project, runId, waitReason, error, la
     );
   }
   if (status === "waiting-permission") {
-    return <div className={amber}><Notice icon={ShieldAlert}>Claude menunggu izin. Buka Claude Code, lalu setujui atau tolak permintaannya.</Notice></div>;
+    return (
+      <div className={amber}>
+        <Notice icon={ShieldAlert}>Claude menunggu izin. Buka Claude Code, lalu setujui atau tolak permintaannya. Bila sesi Claude Code itu sudah ditutup, tandai run ini gagal.</Notice>
+        <MarkFailedButton project={project} runId={runId} />
+      </div>
+    );
   }
   if (status === "stopped") {
     return (

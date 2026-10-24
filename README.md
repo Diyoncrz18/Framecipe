@@ -163,7 +163,7 @@ On the home page, the **Kesehatan** (health) card should show green checks for N
 |---|---|---|
 | **Berjalan** (running) | Claude is working. | Nothing. |
 | **Menunggu Anda** (waiting for you) | Claude is waiting for your reply in chat, for example a script approval. | Reply in Claude Code. |
-| **Menunggu izin Anda** (waiting for permission) | A Claude Code permission prompt is open. | Answer it in Claude Code. |
+| **Menunggu izin Anda** (waiting for permission) | A Claude Code permission prompt is open. | Answer it in Claude Code. If that session was closed, mark the run as failed. |
 | **Claude berhenti** (Claude stopped) | Claude stopped responding before the run was closed. | Continue in the chat. |
 | **Terhenti** (stalled) | No activity for more than 15 minutes, usually because the session was closed. | Resume with `perbaiki=<runId>` or mark the run as failed. |
 | **Gagal** (failed) | A step could not be fixed. The reason is shown on the execution page. | Fix the cause and resume. |
