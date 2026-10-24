@@ -7,7 +7,7 @@ import path from 'node:path';
 // A leading UTF-8 BOM (some Windows editors add one) is dropped: JSON.parse rejects it.
 export function readJson(file) {
   try {
-    return { ok: true, value: JSON.parse(fs.readFileSync(file, 'utf8').replace(/^﻿/, '')) };
+    return { ok: true, value: JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '')) };
   } catch (e) {
     return { ok: false, error: e.code === 'ENOENT' ? 'missing' : 'corrupt', message: e.message };
   }
