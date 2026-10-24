@@ -143,7 +143,7 @@ export const eventSchema = z.object({
   runId: z.string().nullable(),
   type: z.enum(EVENT_TYPES),
   tool: z.string().nullable(),
-  summary: z.string(),
+  summary: z.string().optional(), // hook-events writes stop, session-start and session-end without one
   detail: z.record(z.string(), z.unknown()).optional(),
   ok: z.boolean().nullable(),
   toolUseId: z.string().optional(),

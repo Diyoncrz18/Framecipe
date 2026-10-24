@@ -59,6 +59,9 @@ it('runSchema dan eventSchema', () => {
   expect(runSchema.safeParse({ ...run, status: 'failed', error: 'render gagal' }).success).toBe(false);
   expect(eventSchema.safeParse({ ts: '2026-10-24T01:53:05.120Z', sessionId: 's1', runId: null, type: 'skill',
     tool: 'Skill', summary: 'remotion-official', ok: true }).success).toBe(true);
+  // The hook writes stop, session-start and session-end events with no summary; only a summary that is not a string is a bad shape.
+  const bare = { ts: '2026-10-24T01:53:05.120Z', sessionId: 's1', runId: null, type: 'stop', tool: null, ok: true };
+  expect([eventSchema.safeParse(bare).success, eventSchema.safeParse({ ...bare, summary: { a: 1 } }).success]).toEqual([true, false]);
 });
 it('requestSchema', () => {
   const req = { id: '7f3a', flow: 'contoh-penjelasan', topic: 'Cara kerja pelangi', notes: '',
