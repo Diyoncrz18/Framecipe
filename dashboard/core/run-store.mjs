@@ -38,11 +38,12 @@ export const sessionEventsPath = (root, sessionId) => resolveInside(root, '.dash
 
 // Latest of: run start, every stage start, and the last event of the bound session.
 // shortcut: reads the whole session log to get its last line; add a tail read if logs ever get big.
-export function lastActivityAt(root, run) {
+// `events`: the session's events when the caller has already parsed them (skips this read).
+export function lastActivityAt(root, run, events) {
   const times = [run.startedAt, ...(run.stages ?? []).map((s) => s.startedAt)];
   if (run.sessionId) {
     try {
-      const last = readJsonLines(sessionEventsPath(root, run.sessionId)).items.at(-1);
+      const last = (events ?? readJsonLines(sessionEventsPath(root, run.sessionId)).items).at(-1);
       if (last?.ts) times.push(last.ts);
     } catch { /* unreadable log (readJsonLines rethrows non-ENOENT): fall back to the run's own timestamps */ }
   }

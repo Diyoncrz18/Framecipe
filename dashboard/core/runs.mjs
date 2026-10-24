@@ -8,7 +8,7 @@ import { resolveInside } from './paths.mjs';
 import { listProjectRuns } from './projects.mjs';
 import { clearActiveRun, lastActivityAt, readActiveRun, readRun, runPaths, sessionEventsPath } from './run-store.mjs';
 
-const FINAL = new Set(['success', 'failed', 'cancelled', 'abandoned']); // display statuses with no stage in progress
+const FAILED_LIKE = new Set(['failed', 'abandoned', 'cancelled']); // display statuses of a run that ended without success: its current stage failed
 const READ_TOOLS = new Set(['Read', 'Grep', 'Glob']);
 const PYTHON_TOOL = /uv run (?:python )?tools\/([\w-]+)\.py/;
 const RENDER_COMMAND = /run\.mjs\s+render/;
@@ -27,30 +27,39 @@ function sessionEvents(root, sessionId) {
   return attempt(() => readJsonLines(sessionEventsPath(root, sessionId)).items.filter((e) => typeof e?.ts === 'string'), []);
 }
 
-// The trigger prompt is the last prompt at or before the run's start; the window ends when the run did, or at `now`.
-function windowOf(root, run, now) {
-  const all = sessionEvents(root, run.sessionId);
+// `all`: the session's events. The trigger prompt is the last prompt at or before the run's start; the window ends when the run did, or at `now`.
+// The command that ends the run (`run.mjs finish` or `fail`) writes endedAt before its end event is logged, so an end event after the window
+// still belongs to it when its start (same toolUseId) is inside.
+function windowOf(run, all, now) {
   const start = ms(run.startedAt);
   const trigger = all.findLast((e) => e.type === 'prompt' && ms(e.ts) <= start) ?? null;
   const from = trigger ? ms(trigger.ts) : start;
   const to = run.endedAt ? ms(run.endedAt) : now.getTime();
-  return { trigger, events: all.filter((e) => ms(e.ts) >= from && ms(e.ts) <= to) };
+  const inside = all.filter((e) => ms(e.ts) >= from && ms(e.ts) <= to);
+  const started = new Set(inside.filter((e) => e.phase === 'start' && e.toolUseId).map((e) => e.toolUseId));
+  return { trigger, events: [...inside, ...all.filter((e) => e.phase === 'end' && started.has(e.toolUseId) && ms(e.ts) > to)] };
 }
 
-export const runWindowEvents = (root, run, now) => windowOf(root, run, now).events;
+export const runWindowEvents = (root, run, now) => windowOf(run, sessionEvents(root, run.sessionId), now).events;
 
 // Stored statuses other than "running" are shown as they are (rules 1 and 2: waiting included); only a running run can turn into something else.
+// Claude has stopped when its last turn ended with nothing in the background, when the turn failed (StopFailure: ok false) or when the session ended.
 export function displayStatus(run, lastEvent, lastActivity, now, staleMs = 900000) {
   if (run.status !== 'running') return run.status;
   if (lastEvent?.type === 'notification' && lastEvent.detail?.notificationType === 'permission_prompt') return 'waiting-permission';
-  if (lastEvent?.type === 'stop' && lastEvent.detail?.backgroundTasks === 0) return 'stopped';
+  if (lastEvent?.type === 'session-end' || (lastEvent?.type === 'stop' && (lastEvent.ok === false || lastEvent.detail?.backgroundTasks === 0))) return 'stopped';
   return now - lastActivity > staleMs ? 'abandoned' : 'running';
 }
 
-// The session log is only read for a running run, the one case that needs it.
-function effectiveStatus(root, run, now) {
+// The event the status rules look at. Claude Code sends an idle_prompt notification about a minute after a turn ends: if it counted as the
+// last event it would hide the stop before it, so only a permission_prompt notification does.
+const statusEvent = (events) => events.findLast((e) => e.type !== 'notification' || e.detail?.notificationType === 'permission_prompt') ?? null;
+
+// The session log is only read for a running run, the one case that needs it (`events`: already parsed, so it is not read again).
+function effectiveStatus(root, run, now, events) {
   if (run.status !== 'running') return displayStatus(run, null, new Date(run.startedAt), now);
-  return displayStatus(run, sessionEvents(root, run.sessionId).at(-1) ?? null, lastActivityAt(root, run), now);
+  const all = events ?? sessionEvents(root, run.sessionId);
+  return displayStatus(run, statusEvent(all), lastActivityAt(root, run, all), now);
 }
 
 export function summarizeRun(events, plannedSkills = []) {
@@ -110,8 +119,8 @@ function stageList(run, status, now) {
   return STAGES.map((name, i) => {
     const e = run.stages.findLast((s) => s.name === name);
     const current = name === run.stage;
-    // An entered stage that is not active counts as done, also when a stale run never closed it (same picture as after the sweep).
-    const state = current && run.status === 'failed' ? 'failed' : current && !FINAL.has(status) ? 'active' : e ? 'done' : i < lastEntered ? 'skipped' : 'pending';
+    // Keyed on the display status, so a stale run not swept yet (stored running) looks the same as after the sweep (stored abandoned).
+    const state = current && FAILED_LIKE.has(status) ? 'failed' : current && status !== 'success' ? 'active' : e ? 'done' : i < lastEntered ? 'skipped' : 'pending';
     return { name, label: STAGE_LABELS[name], state, startedAt: e?.startedAt ?? null, endedAt: e?.endedAt ?? null,
       durationMs: e ? (e.endedAt ? ms(e.endedAt) : now.getTime()) - ms(e.startedAt) : null };
   });
@@ -129,8 +138,9 @@ function listFrames(root, project, runId) {
 export function readRunDetail(root, project, runId, now = new Date()) {
   const run = loadRun(root, project, runId);
   if (!run) return null;
-  const status = effectiveStatus(root, run, now);
-  const { trigger, events } = windowOf(root, run, now);
+  const all = sessionEvents(root, run.sessionId); // read once for the status and the window
+  const status = effectiveStatus(root, run, now, all);
+  const { trigger, events } = windowOf(run, all, now);
   const snapshot = attempt(() => readJson(runPaths(root, project, runId).flowFile), null);
   const flowSnapshot = snapshot?.ok && isObject(snapshot.value) ? snapshot.value : null;
   const planned = Array.isArray(flowSnapshot?.skills) ? flowSnapshot.skills.filter((s) => typeof s === 'string') : [];
