@@ -1,6 +1,6 @@
-# Dashboard Video Generation
+# Framecipe Dashboard
 
-Dashboard lokal untuk membuat dan memantau video dengan toolkit ini. Anda memesan video di dashboard, Claude Code mengerjakannya lewat `/buat-video`, dan dashboard menampilkan prosesnya serta hasilnya di galeri. Semua berjalan di komputer Anda: server hanya mendengarkan `127.0.0.1:3210` dan menolak permintaan dengan Host lain. Tidak ada deploy ke layanan hosting.
+Dashboard lokal Framecipe untuk membuat dan memantau video. Gambaran lengkap proyek ada di `README.md` pada root repo. Anda memesan video di dashboard, Claude Code mengerjakannya lewat `/buat-video`, dan dashboard menampilkan prosesnya serta hasilnya di galeri. Semua berjalan di komputer Anda: server hanya mendengarkan `127.0.0.1:3210` dan menolak permintaan dengan Host lain. Tidak ada deploy ke layanan hosting.
 
 Next.js 16 (App Router), TypeScript, Tailwind 4, dan Vitest. Logika inti ada di `core/` (ESM `.mjs`, tes di sampingnya).
 
