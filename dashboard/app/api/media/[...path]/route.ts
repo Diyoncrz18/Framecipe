@@ -16,8 +16,10 @@ function locate(segments: string[]) {
     const file = resolveInside(ROOT, ...segments);
     const stat = fs.statSync(file);
     // A later ".." can leave the allowed folder yet stay inside the repo (projects/../.dashboard/x.png): check where the path ended up.
-    const top = toRepoRelative(ROOT, file)?.split("/")[0] ?? "";
-    return MEDIA_ROOTS.includes(top) && stat.isFile() ? { file, size: stat.size } : null;
+    const topOf = (root: string, p: string) => toRepoRelative(root, p)?.split("/")[0] ?? "";
+    // Same check on the real file: an in-repo link (projects/x/a.png -> ../../.env) stays inside the repo but not inside an allowed folder.
+    const realTop = topOf(fs.realpathSync.native(ROOT), fs.realpathSync.native(file));
+    return MEDIA_ROOTS.includes(topOf(ROOT, file)) && MEDIA_ROOTS.includes(realTop) && stat.isFile() ? { file, size: stat.size } : null;
   } catch {
     return null;
   }
