@@ -1,6 +1,38 @@
-# Framecipe
+# CLAUDE.md — Framecipe
 
-This file provides guidance to Claude Code (claude.ai/code) when working with this video production toolkit.
+Guidance for Claude Code in this repository. The full project context (architecture, data contracts, hard rules, conventions, verification and git rules) lives in AGENTS.md, imported here so every agent reads the same source:
+
+@AGENTS.md
+
+## Working with the owner
+
+- Reply in **Bahasa Indonesia**. Keep code, identifiers, file names and comments in English.
+- The owner prefers proactive execution: make reasonable decisions, verify the result, then report briefly what changed, what was verified and what was not.
+- Never add `Co-Authored-By` or any AI attribution to commits or PRs. Commit or push only when asked.
+- Ask before risky or hard-to-undo actions: force-push, history rewrites, deleting files or branches, changing Claude Code settings.
+- Never print or echo secrets from `.env`. When a key is needed, ask the owner to paste it into `.env` themselves, not into the chat.
+
+## Before you change anything
+
+1. Read AGENTS.md (imported above) and every file you are about to touch.
+2. Run `git status` and `git log --oneline -5`. Never overwrite uncommitted work you did not make.
+3. Check for an active video run: `node dashboard/bin/run.mjs status`. While a run is active, do not change `dashboard/core/run-ops.mjs`, `dashboard/bin/run.mjs` or `.claude/commands/buat-video.md` unless that is the task.
+4. For Next.js work, read the relevant guide in `dashboard/node_modules/next/dist/docs/` first. Next 16 differs from older versions.
+5. Prefer the smallest complete change that follows existing patterns; finish the callers, tests and docs it affects.
+
+## Claude Code integration in this repo
+
+- **Hooks** (`.claude/settings.json`): `node ${CLAUDE_PROJECT_DIR}/dashboard/bin/hook.mjs` on UserPromptSubmit, PreToolUse (Bash|Agent), PostToolUse, PostToolUseFailure, Notification, Stop, StopFailure, SessionStart and SessionEnd. They append to `.dashboard/events/`. Keep `hook.mjs` fast and free of dependencies.
+- **Permission allowlist**: `Bash(node dashboard/bin/run.mjs *)`, `Bash(rtk node dashboard/bin/run.mjs *)` and `Edit(/projects/**)`. The workspace must be trusted, otherwise hooks and the allowlist are ignored.
+- **`/buat-video`** (`.claude/commands/buat-video.md`) runs a recipe the owner already approved: no brainstorming, no clarifying questions, reports in Indonesian. In that mode Claude uses Bash only for `node dashboard/bin/run.mjs …` (one standalone command each, no `cd … &&`, no pipes), edits files only inside `projects/<project>/`, and after a successful `start` always ends with `finish` or `fail`. If `start` fails, report the message and stop.
+- **Skills** (`.claude/skills/`): `remotion-best-practices` (folder `remotion-official`, the default recipe skill), `remotion` (toolkit patterns), `frontend-design`, `synthetic-ui-demo`, `playwright-recording`, `ffmpeg`, `elevenlabs`, `acestep`, `ideogram4`, `qwen-edit`, `ltx2`, `moviepy`, `runpod`. Recipes list skills by their Skill-tool name.
+- **Toolkit commands** (`.claude/commands/`): `/video`, `/setup`, `/brand`, `/template`, `/skills`, `/scene-review`, `/design`, `/generate-voiceover`, `/redub`, `/voice-clone`, `/record-demo`, `/thumbnail`, `/publish`, `/contribute`, `/versions`.
+
+---
+
+# Toolkit reference
+
+The rest of this file describes the underlying video toolkit: templates, brands, shared components, Python tools, timing rules and design patterns. Use it when building or editing video projects.
 
 ## Overview
 
@@ -8,7 +40,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 **Key capabilities:**
 - Programmatic video creation with Remotion (React-based)
-- AI voiceover generation with ElevenLabs or Qwen3-TTS
+- AI voiceover generation with free Edge TTS (Indonesian voices), ElevenLabs, 60db or Qwen3-TTS
 - AI music generation with ACE-Step 1.5 (text-to-music, vocals, covers, stems)
 - Browser demo recording with Playwright
 - Asset processing with FFmpeg
@@ -144,8 +176,8 @@ Utility tools work on any video file without requiring a project structure.
 
 ### Voiceover Generation
 
-Three TTS providers share one `voiceover.py` interface (`--provider`):
-**elevenlabs** (default), **qwen3** (self-hosted, free), and **60db** (premium cloud).
+Four TTS providers share one `voiceover.py` interface (`--provider`):
+**elevenlabs** (default), **qwen3** (self-hosted, free), **60db** (premium cloud), and **edge** (free Microsoft Edge TTS, no key, Indonesian voices `id-ID-GadisNeural` / `id-ID-ArdiNeural`).
 Voice settings (`--stability`, `--similarity`, `--speed`) use a **unified 0-1 scale**
 across all providers — for 60db they are auto-converted to its native 0-100 scale.
 
@@ -839,7 +871,3 @@ Keep these separate. Don't mix toolkit improvements with video production.
 - `docs/creating-templates.md` - Build new templates
 - `docs/creating-brands.md` - Create brand profiles
 - `docs/optional-components.md` - Setup for optional ML-based tools (ProPainter, etc.)
-
-## Dashboard & /buat-video
-
-Dashboard lokal ada di `dashboard/`. Jalankan `cd dashboard && npm run dev`, lalu buka http://127.0.0.1:3210. Video dari alur dibuat dengan `/buat-video`; aturan lengkapnya ada di `.claude/commands/buat-video.md`. Setiap langkah pipeline lewat `node dashboard/bin/run.mjs <start|stage|wait|install|render|stills|finish|fail|status>`, dan jalankan dari folder repo utama, bukan worktree. Data runtime ada di `.dashboard/` (diabaikan git). Spesifikasi: `docs/superpowers/specs/2026-10-24-dashboard-video-generation-prd.md`.
