@@ -68,7 +68,7 @@ function Palette({ onDone }: { onDone: () => void }) {
         <kbd className={cn(KBD, "hidden sm:inline-flex")}>Esc</kbd>
         <DialogClose
           aria-label="Tutup pencarian"
-          className="rounded-md p-1 text-muted-foreground outline-none hover:bg-black/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          className="rounded-md p-1 text-muted-foreground outline-none hover:bg-black/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
         >
           <X aria-hidden className="size-[18px]" strokeWidth={1.5} />
         </DialogClose>
@@ -89,7 +89,7 @@ function Palette({ onDone }: { onDone: () => void }) {
                 onMouseMove={() => selected || setCursor(i)}
                 className={cn(
                   "flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-[13px] text-muted-foreground",
-                  selected && "bg-black/5 text-foreground",
+                  selected && "bg-black/5 text-foreground dark:bg-white/10",
                 )}
               >
                 <Icon aria-hidden className="size-4 shrink-0" strokeWidth={1.5} />

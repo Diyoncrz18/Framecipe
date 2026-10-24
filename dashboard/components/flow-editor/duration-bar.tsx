@@ -32,7 +32,7 @@ export function DurationBar({ scenes, target }: { scenes: Scene[]; target: numbe
       </ul>
       <p className="text-sm font-medium">Total {total} dtk dari target {goal} dtk</p>
       {/* Always in the page, so a screen reader announces the text when it appears. */}
-      <p role="status" className="flex items-center gap-1.5 text-sm text-amber-900">
+      <p role="status" className="flex items-center gap-1.5 text-sm text-amber-900 dark:text-amber-200">
         {off && (
           <>
             <TriangleAlert aria-hidden="true" className="size-4 shrink-0" />

@@ -4,7 +4,7 @@ import type { Health } from "@/core/health.mjs";
 // Every check carries an icon and a text, never color alone (NFR-10). `warn` is for things that are optional or fixable later.
 export function Mark({ ok, warn = false, children }: { ok: boolean; warn?: boolean; children: React.ReactNode }) {
   const Icon = ok ? CircleCheck : warn ? CircleAlert : CircleX;
-  const tone = ok ? "text-green-800" : warn ? "text-amber-900" : "text-red-900";
+  const tone = ok ? "text-green-800 dark:text-green-300" : warn ? "text-amber-900 dark:text-amber-200" : "text-red-900 dark:text-red-300";
   return (
     <span className={`flex items-start gap-1.5 ${tone}`}>
       <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />

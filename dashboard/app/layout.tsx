@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
+import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 // Pages read the repo filesystem and refresh every 2 s, so nothing is prerendered.
@@ -12,7 +13,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className="h-full antialiased">
+    // The theme script sets class="dark" before React hydrates, hence suppressHydrationWarning on <html> only.
+    <html lang="id" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-full">
         <a
           href="#konten"

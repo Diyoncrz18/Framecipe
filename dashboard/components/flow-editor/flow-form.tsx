@@ -68,7 +68,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function KeyStatus({ name, filled }: { name: string; filled: boolean }) {
   const Icon = filled ? CircleCheck : CircleAlert;
   return (
-    <li className={`flex items-center gap-1.5 ${filled ? "text-green-800" : "text-amber-900"}`}>
+    <li className={`flex items-center gap-1.5 ${filled ? "text-green-800 dark:text-green-300" : "text-amber-900 dark:text-amber-200"}`}>
       <Icon aria-hidden="true" className="size-3.5 shrink-0" />
       <code className="text-xs">{name}</code> {filled ? "terisi" : "kosong"}
     </li>
@@ -246,8 +246,8 @@ export function FlowForm({ mode, initial, folderId, version = 0, initialErrors =
           Teks/caption
         </Label>
         {cloudKeys.length > 0 && (
-          <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
-            <p className="font-medium text-amber-900">Butuh layanan cloud/berbayar</p>
+          <div className="rounded-md border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-3 text-sm">
+            <p className="font-medium text-amber-900 dark:text-amber-200">Butuh layanan cloud/berbayar</p>
             <ul aria-label="API key yang dibutuhkan" className="mt-1 flex flex-col gap-1">
               {cloudKeys.map((k) => <KeyStatus key={k} name={k} filled={!!data.env[k]} />)}
             </ul>
@@ -281,7 +281,7 @@ export function FlowForm({ mode, initial, folderId, version = 0, initialErrors =
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending || mismatch} aria-describedby={mismatch ? id("mismatch") : undefined}>Simpan</Button>
-        <p role="status" className="flex items-center gap-1.5 text-sm text-green-800">
+        <p role="status" className="flex items-center gap-1.5 text-sm text-green-800 dark:text-green-300">
           {saved !== null && (
             <>
               <CircleCheck aria-hidden="true" className="size-4 shrink-0" />

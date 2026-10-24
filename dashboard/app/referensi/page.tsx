@@ -75,7 +75,7 @@ function Templates({ items, flows }: { items: Catalog["templates"]; flows: FlowO
       badges={<>
         <Badge variant="outline">Status: {t.status ?? DASH}</Badge>
         <Badge variant="secondary">{t.engine === "remotion" ? "Remotion" : "Python"}</Badge>
-        {t.engine !== "remotion" && <Badge variant="outline" className="border-transparent bg-amber-100 text-amber-900">Belum bisa dipakai di alur v1</Badge>}
+        {t.engine !== "remotion" && <Badge variant="outline" className="border-transparent bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200">Belum bisa dipakai di alur v1</Badge>}
       </>}
     >
       <p className="text-sm">

@@ -22,12 +22,12 @@ function Needs({ item, filled }: { item: CatalogItem; filled: Map<string, boolea
     <div className="flex flex-col gap-1">
       {item.envVars.map((key) =>
         filled.get(key) ? (
-          <span key={key} className="flex items-center gap-1 text-green-800">
+          <span key={key} className="flex items-center gap-1 text-green-800 dark:text-green-300">
             <CircleCheck aria-hidden="true" className="size-3.5 shrink-0" />
             <code className="text-xs">{key}</code> terisi
           </span>
         ) : (
-          <span key={key} className="flex items-center gap-1 text-amber-900">
+          <span key={key} className="flex items-center gap-1 text-amber-900 dark:text-amber-200">
             <CircleAlert aria-hidden="true" className="size-3.5 shrink-0" />
             <code className="text-xs">{key}</code> kosong
           </span>

@@ -121,7 +121,7 @@ export type RunPanelProps = {
 
 /** The panel that goes with the run's status. Nothing for running and cancelled: the stage bar and the timeline say enough. */
 export function RunPanel({ status, stored, project, runId, waitReason, error, lastError, retryPrompt, videoFile, children }: RunPanelProps) {
-  const amber = `${BOX} border-amber-300 bg-amber-50 text-amber-950`;
+  const amber = `${BOX} border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-950 dark:text-amber-100`;
 
   if (status === "waiting") {
     return (

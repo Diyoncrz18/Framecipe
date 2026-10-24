@@ -6,10 +6,10 @@ export type Stage = { name: string; label: string; state: "done" | "active" | "s
 
 // Every state has an icon and a word, never color alone (NFR-10).
 const STATES: Record<Stage["state"], { icon: LucideIcon; text: string; className: string }> = {
-  done: { icon: CircleCheck, text: "selesai", className: "text-green-800" },
-  active: { icon: LoaderCircle, text: "aktif", className: "border-blue-300 bg-blue-50 text-blue-900" },
+  done: { icon: CircleCheck, text: "selesai", className: "text-green-800 dark:text-green-300" },
+  active: { icon: LoaderCircle, text: "aktif", className: "border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200" },
   skipped: { icon: SkipForward, text: "dilewati", className: "text-muted-foreground" },
-  failed: { icon: CircleX, text: "gagal", className: "border-red-300 bg-red-50 text-red-900" },
+  failed: { icon: CircleX, text: "gagal", className: "border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-300" },
   pending: { icon: Circle, text: "menunggu", className: "text-muted-foreground" },
 };
 

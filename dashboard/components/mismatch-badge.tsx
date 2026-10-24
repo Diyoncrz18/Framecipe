@@ -7,7 +7,7 @@ const LABELS = { "missing-folder": "Terdaftar, folder tidak ada", unregistered: 
 export function MismatchBadge({ mismatch }: { mismatch: string | null }) {
   if (!mismatch || !(mismatch in LABELS)) return null;
   return (
-    <Badge variant="outline" className="border-transparent bg-amber-100 text-amber-900">
+    <Badge variant="outline" className="border-transparent bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200">
       <TriangleAlert aria-hidden="true" />
       {LABELS[mismatch as keyof typeof LABELS]}
     </Badge>

@@ -8,7 +8,7 @@ import { NAV_FOOTER, NAV_GROUPS, isActive, type NavLink } from "@/lib/nav";
 
 const ROW =
   "group flex w-full items-center gap-2.5 rounded-md px-2.5 py-[7px] text-[13px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none";
-const IDLE = "text-muted-foreground hover:bg-black/5 hover:text-foreground";
+const IDLE = "text-muted-foreground hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5";
 
 export const KBD =
   "inline-flex h-5 items-center rounded-[4px] border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground";
@@ -22,7 +22,7 @@ function Item({ link, pathname, onNavigate }: { link: NavLink; pathname: string;
         href={link.href}
         onClick={onNavigate}
         aria-current={active ? "page" : undefined}
-        className={cn(ROW, active ? "bg-black/5 font-medium text-foreground" : IDLE)}
+        className={cn(ROW, active ? "bg-black/5 font-medium text-foreground dark:bg-white/10" : IDLE)}
       >
         <Icon aria-hidden className={cn("size-4 shrink-0", active ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} strokeWidth={1.5} />
         <span className="truncate">{link.label}</span>

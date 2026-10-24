@@ -18,10 +18,10 @@ const HEADERS = ["Nama", "Template", "Brand", "Format", "Scene", "Durasi (total/
 
 // Every status has an icon and text, never color alone (NFR-10). A broken file wins over the rest: nothing else can be said about it.
 function status(f: Flow): { label: string; icon: LucideIcon; className: string; detail?: string } {
-  if (f.corrupt) return { label: "Data rusak", icon: CircleAlert, className: "bg-red-100 text-red-900", detail: f.errors[0] };
-  if (f.errors.length) return { label: "Tidak valid", icon: CircleAlert, className: "bg-red-100 text-red-900", detail: f.errors[0] };
-  if (f.warnings.length) return { label: "Peringatan", icon: TriangleAlert, className: "bg-amber-100 text-amber-900", detail: f.warnings[0] };
-  return { label: "Valid", icon: CircleCheck, className: "bg-green-100 text-green-900" };
+  if (f.corrupt) return { label: "Data rusak", icon: CircleAlert, className: "bg-red-100 dark:bg-red-900/40 text-red-900 dark:text-red-300", detail: f.errors[0] };
+  if (f.errors.length) return { label: "Tidak valid", icon: CircleAlert, className: "bg-red-100 dark:bg-red-900/40 text-red-900 dark:text-red-300", detail: f.errors[0] };
+  if (f.warnings.length) return { label: "Peringatan", icon: TriangleAlert, className: "bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200", detail: f.warnings[0] };
+  return { label: "Valid", icon: CircleCheck, className: "bg-green-100 dark:bg-green-900/40 text-green-900 dark:text-green-300" };
 }
 
 export default function Page() {
