@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { defaultDeps } from './run-ops.mjs';
 
 const created = [];
 
@@ -83,4 +84,21 @@ export function makeFixtureRepo() {
 // with Z it is UTC (use it when an ISO string is asserted).
 export function at(iso) {
   return new Date(iso);
+}
+
+// Deps for startRun/finishRun: fixed clock (2026-10-24 01:53 local), id suffix, Claude version, a spawnSync that answers { status },
+// and a probe that answers `probe` (undefined when not given).
+export function testDeps({ probe, spawnStatus = 0 } = {}) {
+  return { ...defaultDeps, now: () => new Date(2026, 9, 24, 1, 53), claudeVersion: () => '2.1.303', rand: () => 'a1b2',
+    spawnSync: () => ({ status: spawnStatus }), probe: () => probe };
+}
+
+// projects/<slug>/out/<runId>.mp4 with the given content.
+export function writeVideo(root, slug, runId, content) {
+  write(root, `projects/${slug}/out/${runId}.mp4`, content);
+}
+
+// projects/<slug>/runs/<runId>/frames/frame-1.jpg, the gallery thumbnail.
+export function placeFrame(root, slug, runId) {
+  write(root, `projects/${slug}/runs/${runId}/frames/frame-1.jpg`, 'jpg');
 }
