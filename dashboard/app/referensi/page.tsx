@@ -52,8 +52,9 @@ function Examples({ items }: { items: Catalog["examples"] }) {
         <video src={mediaUrl(e.renderedVideo)} controls preload="metadata" aria-label={`Video contoh ${e.id}`} className="aspect-video w-full bg-muted" />
       ) : (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-muted-foreground">Belum di-render</span>
-          <CopyButton text={`cd examples/${e.id} && npm install && npm run render`} />
+          <span className="text-sm text-muted-foreground">Belum di-render{e.mismatch === "missing-folder" && ". Folder contoh tidak ada."}</span>
+          {/* There is no folder to cd into when the registry lists an example that is not in examples/. */}
+          {e.mismatch !== "missing-folder" && <CopyButton text={`cd examples/${e.id} && npm install && npm run render`} />}
         </div>
       )}
     </Item>
@@ -81,15 +82,15 @@ function Templates({ items }: { items: Catalog["templates"] }) {
 
 function Brands({ items }: { items: Catalog["brands"] }) {
   // A broken brand.json shows as its own item; the other brands are unaffected (NFR-07).
-  return items.map((b) =>
-    b.brand ? (
-      <Item key={b.id} title={typeof b.brand.name === "string" ? b.brand.name : b.id} description={b.description}>
-        <BrandPreview name={b.id} brand={b.brand} logo={b.logo} />
+  return items.map((b) => {
+    if (!b.brand) return <Item key={b.id} title={b.corrupt ? "Data rusak" : b.id} description={`Folder: brands/${b.id}`} />;
+    const name = typeof b.brand.name === "string" ? b.brand.name : b.id;
+    return (
+      <Item key={b.id} title={name} description={b.description}>
+        <BrandPreview name={name} brand={b.brand} logo={b.logo} />
       </Item>
-    ) : (
-      <Item key={b.id} title={b.corrupt ? "Data rusak" : b.id} description={`Folder: brands/${b.id}`} />
-    ),
-  );
+    );
+  });
 }
 
 function Transitions({ items }: { items: Catalog["transitions"] }) {

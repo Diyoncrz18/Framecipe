@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { readJson } from './jsonfile.mjs';
-import { resolveInside } from './paths.mjs';
+import { resolveInside, toRepoRelative } from './paths.mjs';
 
 const REGISTRY = '_internal/toolkit-registry.json';
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -16,14 +16,14 @@ function inside(root, ...segs) {
 
 function list(root, ...segs) {
   const dir = inside(root, ...segs);
-  try { return dir ? fs.readdirSync(dir, { withFileTypes: true }) : []; } catch { return []; }
+  try { return dir ? fs.readdirSync(/*turbopackIgnore: true*/ dir, { withFileTypes: true }) : []; } catch { return []; }
 }
 const dirNames = (root, ...segs) => list(root, ...segs).filter((e) => e.isDirectory()).map((e) => e.name);
 const fileNames = (root, ...segs) => list(root, ...segs).filter((e) => e.isFile()).map((e) => e.name);
 
 function exists(root, rel) {
   const p = inside(root, rel);
-  return p !== null && fs.existsSync(p);
+  return p !== null && fs.existsSync(/*turbopackIgnore: true*/ p);
 }
 
 function readText(root, ...segs) {
@@ -48,7 +48,7 @@ const gcd = (a, b) => (b ? gcd(b, a % b) : a);
 export function templateInfo(root, id) {
   if (typeof id !== 'string' || !id || id === '.' || id === '..' || /[\\/]/.test(id)) return null;
   const dir = inside(root, 'templates', id);
-  if (!dir || !fs.statSync(dir, { throwIfNoEntry: false })?.isDirectory()) return null;
+  if (!dir || !fs.statSync(/*turbopackIgnore: true*/ dir, { throwIfNoEntry: false })?.isDirectory()) return null;
   const pkg = readJson(path.join(dir, 'package.json'));
   const engine = pkg.ok && (pkg.value?.dependencies?.remotion || pkg.value?.devDependencies?.remotion) ? 'remotion' : 'python';
   const config = fileNames(root, 'templates', id, 'src', 'config').filter((f) => f.endsWith('.ts')).sort()
@@ -66,8 +66,19 @@ const NO_TEMPLATE_INFO = { engine: 'python', aspectRatio: 'unknown', width: null
 function newestVideo(root, id) {
   const dir = inside(root, 'examples', id, 'out');
   const videos = fileNames(root, 'examples', id, 'out').filter((f) => f.toLowerCase().endsWith('.mp4'))
-    .map((f) => ({ f, mtime: fs.statSync(path.join(dir, f)).mtimeMs })).sort((a, b) => b.mtime - a.mtime);
+    .map((f) => ({ f, mtime: fs.statSync(path.join(/*turbopackIgnore: true*/ dir, f)).mtimeMs })).sort((a, b) => b.mtime - a.mtime);
   return videos.length ? `examples/${id}/out/${videos[0].f}` : null;
+}
+
+// brand.json assets.logo, relative to the brand folder and not allowed to leave it (the media route serves brands/ only, and
+// ../ would reach other folders), else the first assets/logo.* file.
+function brandLogo(root, id, brand) {
+  const declared = str(brand?.assets?.logo);
+  const abs = declared ? inside(root, 'brands', id, declared) : null;
+  const rel = abs && toRepoRelative(root, abs);
+  if (abs && rel?.startsWith(`brands/${id}/`) && fs.statSync(/*turbopackIgnore: true*/ abs, { throwIfNoEntry: false })?.isFile()) return rel;
+  const found = fileNames(root, 'brands', id, 'assets').find((f) => /^logo\.[^.]+$/i.test(f));
+  return found ? `brands/${id}/assets/${found}` : null;
 }
 
 function readBrand(root, id) {
@@ -119,8 +130,7 @@ const SECTIONS = {
     conv: (id) => `brands/${id}`,
     scan: (root) => new Map(dirNames(root, 'brands').filter((id) => fileNames(root, 'brands', id).includes('brand.json')).map((id) => {
       const { brand, corrupt } = readBrand(root, id);
-      const logo = fileNames(root, 'brands', id, 'assets').find((f) => /^logo\.[^.]+$/i.test(f));
-      return [id, { path: `brands/${id}`, description: str(brand?.description), brand, corrupt, logo: logo ? `brands/${id}/assets/${logo}` : null }];
+      return [id, { path: `brands/${id}`, description: str(brand?.description), brand, corrupt, logo: brandLogo(root, id, brand) }];
     })),
     extra: (f) => ({ brand: f?.brand ?? null, corrupt: f?.corrupt ?? false, logo: f?.logo ?? null }),
   },
