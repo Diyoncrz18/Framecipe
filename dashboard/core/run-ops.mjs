@@ -11,6 +11,7 @@ import { readJson, writeJsonAtomic } from './jsonfile.mjs';
 import { isGitWorktree, resolveInside, toRepoRelative } from './paths.mjs';
 import { findBrowserExe, parseRenderScript, probeVideo, remotionCliPath, sharedBrowserDir } from './remotion.mjs';
 import { clearActiveRun, lastActivityAt, readActiveRun, readRun, requestPath, runPaths, writeActiveRun, writeRun } from './run-store.mjs';
+import { effectiveStatus } from './runs.mjs';
 
 const coded = (code, message) => Object.assign(new Error(message), { code });
 const badArgs = (why) => coded('BAD_ARGS', `Argumen tidak lengkap: ${why}.`);
@@ -103,8 +104,10 @@ export function startRun(root, input, deps = defaultDeps) {
   const marker = readActiveRun(root);
   if (marker) {
     const live = activeRunOrNull(root);
-    if (live && now - lastActivityAt(root, live) <= deps.staleMs) {
-      throw coded('ACTIVE_RUN', `Masih ada run aktif ${live.runId} (proyek ${live.project}). Selesaikan dengan finish atau fail, atau tunggu 15 menit tanpa aktivitas.`);
+    // A run waiting for the user's permission stays alive however long it takes (JMB-05), same rule as the display status.
+    if (live && (now - lastActivityAt(root, live) <= deps.staleMs || effectiveStatus(root, live, now) === 'waiting-permission')) {
+      // Read by the user, relayed by a second /buat-video session: it must not suggest finish or fail, the run belongs to the other session.
+      throw coded('ACTIVE_RUN', `Masih ada run aktif (${live.project}/${live.runId}). Tunggu sampai selesai, tandai gagal dari halaman Eksekusi di dashboard, atau tunggu 15 menit tanpa aktivitas.`);
     }
     if (live) {
       closeOpenStages(live, nowIso); // a terminal run has no open stage, same as failRun

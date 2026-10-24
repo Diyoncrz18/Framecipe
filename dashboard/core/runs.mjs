@@ -56,7 +56,7 @@ export function displayStatus(run, lastEvent, lastActivity, now, staleMs = 90000
 const statusEvent = (events) => events.findLast((e) => e.type !== 'notification' || e.detail?.notificationType === 'permission_prompt') ?? null;
 
 // The session log is only read for a running run, the one case that needs it (`events`: already parsed, so it is not read again).
-function effectiveStatus(root, run, now, events) {
+export function effectiveStatus(root, run, now, events) {
   if (run.status !== 'running') return displayStatus(run, null, new Date(run.startedAt), now);
   const all = events ?? sessionEvents(root, run.sessionId);
   return displayStatus(run, statusEvent(all), lastActivityAt(root, run, all), now);
