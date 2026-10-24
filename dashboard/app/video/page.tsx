@@ -1,23 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { VideoCard } from "@/components/video-card";
 import { RUN_STATUSES } from "@/core/contracts.mjs";
-import { readJson } from "@/core/jsonfile.mjs";
 import { STATUS_LABELS } from "@/core/labels.mjs";
-import { resolveInside } from "@/core/paths.mjs";
 import { listProjects } from "@/core/projects.mjs";
+import { flowName } from "@/lib/flow-name";
 import { ROOT } from "@/lib/root";
 
 const SELECT = "h-8 rounded-lg border border-input bg-transparent px-2 text-sm focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none";
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
-
-// The flow's display name, or its id when flow.json is missing or broken.
-function flowName(id: string): string {
-  try {
-    const r = readJson(resolveInside(ROOT, "flows", id, "flow.json"));
-    if (r.ok && typeof r.value?.name === "string" && r.value.name) return r.value.name;
-  } catch { /* an id that is not a plain folder name */ }
-  return id;
-}
 
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
