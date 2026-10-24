@@ -62,6 +62,27 @@ it('brand: logo, dan brand.json rusak ditandai', () => {
   expect(c.brands.find(b => b.id === 'default')).toMatchObject({ logo: 'brands/default/assets/logo.png', corrupt: false });
   expect(c.brands.find(b => b.id === 'other')).toMatchObject({ brand: null, corrupt: true, logo: null });
 });
+it('brand: logo dari assets.logo di brand.json, tidak boleh keluar dari folder brand', () => {
+  const root = makeFixtureRepo();
+  const touch = (rel) => { fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true }); fs.writeFileSync(path.join(root, rel), 'x'); };
+  const setLogo = (id, logo) => fs.writeFileSync(path.join(root, 'brands', id, 'brand.json'), JSON.stringify({ name: id, assets: { logo } }));
+  const logoOf = (id) => readCatalog(root).brands.find(b => b.id === id).logo;
+
+  touch('brands/default/assets/ds-logo.png');
+  touch('brands/default/assets/logo.png');
+  setLogo('default', 'assets/ds-logo.png');
+  expect(logoOf('default')).toBe('brands/default/assets/ds-logo.png'); // declared wins over assets/logo.*
+
+  touch('x.png');
+  touch('brands/other/assets/o.png');
+  // Leaves the repo, reaches the repo root, reaches another brand, absolute path, missing file, not a string: all ignored.
+  for (const bad of ['../../../x.png', '../../x.png', '../other/assets/o.png', path.join(root, 'x.png'), 'assets/missing.png', 5]) {
+    setLogo('default', bad);
+    expect(logoOf('default'), String(bad)).toBe('brands/default/assets/logo.png');
+  }
+  setLogo('other', '../../x.png');
+  expect(logoOf('other')).toBeNull(); // nothing valid and no assets/logo.*
+});
 // Guard from the plan: tests that read the real repo are skipped when its registry file is absent (e.g. a checkout without the toolkit).
 it.skipIf(!fs.existsSync(path.join(realRoot, '_internal', 'toolkit-registry.json')))('repo asli: fakta Lampiran A PRD', () => {
   const c = readCatalog(realRoot);
