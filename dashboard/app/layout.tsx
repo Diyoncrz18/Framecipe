@@ -6,8 +6,8 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Dashboard Video",
-  description: "Dasbor lokal untuk memesan, memantau, dan menonton video buatan Claude.",
+  title: "Framecipe",
+  description: "Studio video dan motion graphic AI berbasis resep, berjalan lokal bersama Claude Code.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Lewati ke konten
         </a>
         <aside className="shrink-0 border-b bg-sidebar p-4 text-sidebar-foreground md:w-56 md:border-r md:border-b-0">
-          <p className="mb-4 px-3 text-base font-semibold">Dashboard Video</p>
+          <p className="mb-4 px-3 text-base font-semibold">Framecipe</p>
           <AppNav />
         </aside>
         <main id="konten" className="min-w-0 flex-1 p-6">
