@@ -1,0 +1,23 @@
+{
+  "id": "contoh-penjelasan",
+  "name": "Contoh Penjelasan",
+  "description": "Penjelasan singkat 16:9 tanpa suara, render lokal gratis",
+  "version": 1,
+  "updatedAt": "2026-10-24T00:00:00.000Z",
+  "template": "sprint-review",
+  "brand": "default",
+  "output": { "aspectRatio": "16:9", "width": 1920, "height": 1080, "fps": 30, "targetDurationSeconds": 30 },
+  "language": "id",
+  "style": { "tone": "santai dan jelas", "audience": "umum", "rules": ["kalimat pendek", "tanpa emoji"] },
+  "scenes": [
+    { "id": "hook", "label": "Hook", "goal": "Judul berupa pertanyaan yang memancing rasa penasaran", "durationSeconds": 4, "rules": ["maksimal 8 kata"], "narration": false, "visualHint": "judul besar di tengah" },
+    { "id": "poin", "label": "Poin-poin", "goal": "Tiga poin penjelasan inti", "durationSeconds": 12, "rules": ["tepat 3 poin", "maksimal 8 kata per poin"], "narration": false, "transitionOut": "zoomBlur" },
+    { "id": "fakta", "label": "Fakta", "goal": "Tiga angka atau fakta singkat yang menguatkan penjelasan", "durationSeconds": 7, "rules": ["tepat 3 angka"], "narration": false },
+    { "id": "penutup", "label": "Penutup", "goal": "Kalimat penutup dan ajakan singkat", "durationSeconds": 5, "rules": [], "narration": false }
+  ],
+  "audio": { "voiceover": { "enabled": false }, "music": { "enabled": false }, "captions": { "enabled": false } },
+  "references": [ { "kind": "example", "id": "hello-world" }, { "kind": "transition", "id": "zoomBlur" } ],
+  "skills": ["remotion-best-practices"],
+  "approval": "auto",
+  "notes": "Ikuti struktur contoh hello-world: judul, poin, angka, penutup."
+}
