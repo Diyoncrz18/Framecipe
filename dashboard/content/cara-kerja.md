@@ -12,7 +12,7 @@ Dashboard ini memesan, Claude membuat, dan dashboard menampilkan hasilnya. Anda 
 | Tahap | Yang terjadi | Skill/tool |
 | --- | --- | --- |
 | Persiapan | Folder proyek dibuat dari template dan run dicatat. | `run.mjs start` |
-| Naskah | Claude menulis naskah per scene dan mengisi konfigurasi template. | skill `remotion-official`, `VOICEOVER-SCRIPT.md` |
+| Naskah | Claude menulis naskah per scene dan mengisi konfigurasi template. | skill `remotion-best-practices`, `VOICEOVER-SCRIPT.md` |
 | Aset & audio | Opsional. Hanya berjalan bila alur memintanya. | tool `voiceover`/`music_gen` (butuh API key) |
 | Komposisi | Claude menyesuaikan komponen dan tema scene dengan brand. Tahap ini selalu berjalan. | skill `frontend-design` (opsional) |
 | Install | Dependensi proyek dipasang dengan `npm install`. | `run.mjs install` |
@@ -22,7 +22,18 @@ Dashboard ini memesan, Claude membuat, dan dashboard menampilkan hasilnya. Anda 
 
 ## Cara memicu
 
-Saat ini video dipicu lewat chat: di Claude Code, jalankan `/buat-video <id-alur> "<topik>"`. Tombol Generate di dashboard menyusul.
+Cara utama lewat dashboard:
+
+1. Di Beranda, pilih alur, isi topik dan catatan, lalu klik **Buat prompt**. Dashboard menyimpan permintaan Anda dan menampilkan prompt `/buat-video req=<id>`.
+2. Salin prompt itu, lalu tempel di chat Claude Code yang dibuka di folder repo utama.
+3. Claude mengambil permintaan itu, memulai run, dan mengerjakan video tahap demi tahap. Pantau di halaman Eksekusi.
+
+Cara lain, langsung di chat Claude Code:
+
+- `/buat-video <id-alur> "<topik>"`: langsung memakai alur dan topik tanpa membuat permintaan di dashboard.
+- `/buat-video perbaiki=<runId>`: melanjutkan run yang gagal, dibatalkan, atau terhenti dari file proyek yang sudah ada. Prompt ini juga tersedia di detail eksekusi.
+
+Hanya satu run yang boleh aktif. Bila `/buat-video` menolak mulai karena run lain masih aktif, tunggu run itu selesai, tandai gagal dari halaman Eksekusi, atau tunggu 15 menit tanpa aktivitas.
 
 ## Biaya
 

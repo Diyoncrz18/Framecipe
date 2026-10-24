@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dashboard Video Generation
 
-## Getting Started
+Dashboard lokal untuk membuat dan memantau video dengan toolkit ini. Anda memesan video di dashboard, Claude Code mengerjakannya lewat `/buat-video`, dan dashboard menampilkan prosesnya serta hasilnya di galeri. Semua berjalan di komputer Anda: server hanya mendengarkan `127.0.0.1:3210` dan menolak permintaan dengan Host lain. Tidak ada deploy ke layanan hosting.
 
-First, run the development server:
+Next.js 16 (App Router), TypeScript, Tailwind 4, dan Vitest. Logika inti ada di `core/` (ESM `.mjs`, tes di sampingnya).
+
+## Menjalankan
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd dashboard
+npm install
+npm run dev          # mode pengembangan di http://127.0.0.1:3210
 ```
 
-Open [http://127.0.0.1:3210](http://127.0.0.1:3210) with your browser to see the result. The server only listens on `127.0.0.1`, port `3210`.
+Untuk mode produksi:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm start            # http://127.0.0.1:3210
+```
 
-Fonts use the system font stack (no `next/font/google`), so builds work offline.
+## Tes
 
-## Learn More
+```bash
+npm test             # vitest run
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Dokumentasi lain
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Aturan `/buat-video` dan `run.mjs`: bagian "Dashboard & /buat-video" di `CLAUDE.md` pada root repo.
+- Spesifikasi produk: `docs/superpowers/specs/2026-10-24-dashboard-video-generation-prd.md`.
+- Catatan versi Next.js: lihat `AGENTS.md` di folder ini.
