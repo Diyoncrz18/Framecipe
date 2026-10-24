@@ -2,7 +2,6 @@
   "name": "Digital Samba (Townhall)",
   "description": "Townhall deck brand variant - navy + coral palette, matches Ops & Support presentation deck",
   "version": "1.0.0",
-  "website": "https://www.digitalsamba.com",
 
   "colors": {
     "primary": "#F06859",

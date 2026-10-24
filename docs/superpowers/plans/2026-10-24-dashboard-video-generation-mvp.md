@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Kerjakan di checkout utama `C:\MY FOLDER\VIDEO-GENERATION\claude-code-video-toolkit` pada branch `feat/dashboard-mvp`. **Jangan memakai git worktree.** `run.mjs` sengaja menolak berjalan di worktree (JMB-09), jadi uji end-to-end akan gagal di sana.
+- Kerjakan di checkout utama repo pada branch `feat/dashboard-mvp`. **Jangan memakai git worktree.** `run.mjs` sengaja menolak berjalan di worktree (JMB-09), jadi uji end-to-end akan gagal di sana.
 - Cakupan rencana ini hanya kebutuhan P0. P1 dan P2 di luar cakupan.
 - Server dashboard: host `127.0.0.1`, port `3210` (NFR-01, §12).
 - Semua akses file dari UI dan modul inti lewat `resolveInside()`. Tolak `..`, path absolut, serta symlink/junction yang keluar dari root repo (NFR-02).

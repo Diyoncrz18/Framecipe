@@ -20,7 +20,7 @@ const ITEMS = [
 
 const CORAL = '#F06859';
 
-// Title and outro follow the digitalsamba.com hero: a navy band, bold white type,
+// Title and outro follow the product site's hero: a navy band, bold white type,
 // and a white-framed collage of video tiles (one large, three stacked)
 const Navy: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <AbsoluteFill style={{ background: `radial-gradient(1200px 700px at 75% 40%, #3d4b7a 0%, ${NAVY} 60%, #283253 100%)`, fontFamily: RFONT, color: '#fff' }}>
@@ -108,7 +108,7 @@ export const OutroCard: React.FC = () => {
       <div style={{ position: 'absolute', left: 0, right: 0, top: 230, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 30, opacity: a, transform: `translateY(${(1 - a) * 24}px)` }}>
         <Img src={staticFile('logo_mono.svg')} style={{ height: 46, filter: 'brightness(0) invert(1)' }} />
         <div style={{ fontSize: 84, fontWeight: 800, letterSpacing: -2 }}>Release 649 is available now</div>
-        <div style={{ fontSize: 34, color: CORAL, fontWeight: 600, opacity: fade(frame, 16, 28) }}>digitalsamba.com/release-notes</div>
+        <div style={{ fontSize: 34, color: CORAL, fontWeight: 600, opacity: fade(frame, 16, 28) }}>example.com/release-notes</div>
       </div>
       <div style={{ position: 'absolute', left: 0, right: 0, top: 640, display: 'flex', justifyContent: 'center', gap: 16 }}>
         {people.map((p, i) => {

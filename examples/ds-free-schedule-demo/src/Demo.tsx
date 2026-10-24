@@ -150,7 +150,7 @@ const BrowserChrome: React.FC<{ path: string }> = ({ path }) => (
         color: '#5f6368',
       }}
     >
-      my.digitalsamba.com<span style={{ color: '#9aa0a6' }}>{path}</span>
+      my.example.com<span style={{ color: '#9aa0a6' }}>{path}</span>
     </div>
   </div>
 );
@@ -312,7 +312,7 @@ export const Demo: React.FC = () => {
             Schedule a call in seconds.
           </div>
           <div style={{ fontSize: 30, color: C.primary, opacity: interpolate(frame, [END + 30, END + 45], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) }}>
-            my.digitalsamba.com
+            my.example.com
           </div>
         </AbsoluteFill>
       )}

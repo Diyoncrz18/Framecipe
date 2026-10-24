@@ -3,7 +3,6 @@
 A 26s demo of scheduling a call in the Digital Samba Free account center, presented by Lugh in a picture-in-picture
 tile.
 
-**Watch:** https://demos.digitalsamba.com/video/ds-free-schedule-demo.mp4
 
 **Nothing in it is screen-recorded.** Claude Code read the account center's source (Next.js + MUI) and rebuilt the
 dashboard, the schedule form and the confirmation dialog as static React. The theme values, English strings and

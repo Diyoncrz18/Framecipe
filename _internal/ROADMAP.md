@@ -1,6 +1,6 @@
 # Video Toolkit Roadmap
 
-This document tracks the development of claude-code-video-toolkit.
+This document tracks the development of Framecipe.
 
 **Repository:** https://github.com/Diyoncrz18/Framecipe
 

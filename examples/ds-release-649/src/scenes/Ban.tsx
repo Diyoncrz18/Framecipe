@@ -69,7 +69,7 @@ export const Ban: React.FC = () => {
   const hoverOpt = OPTIONS.findIndex((_, i) => near(cur, optAt(i), 100, 18));
 
   return (
-    <Stage url="acme.digitalsamba.com/all-hands" camera={CAMERA} path={PATH} clicks={BAN_CLICKS} aiNote>
+    <Stage url="acme.example.com/all-hands" camera={CAMERA} path={PATH} clicks={BAN_CLICKS} aiNote>
       <RoomChrome activeTool="participants">
         <TileGrid tiles={PEOPLE.map((person) => ({ person, camOff: person.you, speaking: person.id === 'matthias' }))} {...stageRect(true)} cols={3} />
         <ParticipantsPanel sections={SECTIONS} rowMenuHover={menu > 0 || near(cur, dots, 20, 20) ? 'julien' : undefined} />

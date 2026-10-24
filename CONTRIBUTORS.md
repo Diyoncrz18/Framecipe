@@ -1,12 +1,12 @@
 # Contributors
 
-Thank you to everyone who has contributed to claude-code-video-toolkit!
+Thank you to everyone who has contributed to Framecipe!
 
 ## Organizations
 
 | Organization | Website | Contributions |
 |--------------|---------|---------------|
-| Digital Samba | [digitalsamba.com](https://digitalsamba.com) | Example projects, initial development |
+| Digital Samba | — | Example projects, initial development |
 
 ## Individuals
 

@@ -60,7 +60,7 @@ const ContactGroups: React.FC = () => {
   const rows = filtered ? CONTACTS.filter((c) => c.groups.includes('Design team')) : CONTACTS;
   const cur = cursorPos(frame, path);
   return (
-    <Stage url="my.digitalsamba.com/contact-list" camera={[{ f: 0, z: 1.3, x: 860, y: 340 }]} path={path} clicks={[50]}>
+    <Stage url="my.example.com/contact-list" camera={[{ f: 0, z: 1.3, x: 860, y: 340 }]} path={path} clicks={[50]}>
       <Shell active={1}>
         <div style={{ position: 'absolute', left: X, top: 134, fontSize: 24 }}>Contact list</div>
         {CHIPS.map((c, i) => (
@@ -105,7 +105,7 @@ const InvitesAndRegistration: React.FC = () => {
   const pubOn = frame >= 78;
   return (
     <Stage
-      url="my.digitalsamba.com/schedule/create"
+      url="my.example.com/schedule/create"
       camera={[
         { f: 0, z: 1.45, x: 760, y: 300 },
         { f: 50, z: 1.45, x: 760, y: 320 },
@@ -152,7 +152,7 @@ const Crop: React.FC = () => {
     { f: 64, x: SL.x + ((2.1 - 1) / 9) * SL.w, y: SL.y },
   ];
   return (
-    <Stage url="my.digitalsamba.com/schedule/create" camera={[{ f: 0, z: 1.3, x: 720, y: 420 }]} path={path} clicks={[24]}>
+    <Stage url="my.example.com/schedule/create" camera={[{ f: 0, z: 1.3, x: 720, y: 420 }]} path={path} clicks={[24]}>
       <Shell active={0}>
         <div style={{ position: 'absolute', left: X, top: 134, fontSize: 24 }}>Schedule a call</div>
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} />

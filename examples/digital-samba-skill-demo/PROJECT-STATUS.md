@@ -16,7 +16,7 @@
 - [x] Final render completed (`out/digital-samba-skill-demo.mp4`)
 
 ### Future Improvements (Optional)
-- [ ] Upload to demos.digitalsamba.com
+- [ ] Upload to a demo host
 - [ ] Consider shorter cut for social media
 - [ ] Re-record narrator video without hand gestures
 
@@ -93,8 +93,8 @@ remotion/out/digital-samba-skill-demo.mp4
 - **Narrator PiP**: Rounded rectangle, bottom-right, synced with voiceover
 
 ### CTA Slide
-- GitHub link: `github.com/digitalsamba/digital-samba-skill`
-- Website: `digitalsamba.com`
+- GitHub link: `github.com/your-org/digital-samba-skill`
+- Website: `example.com`
 - Tagline: "From zero to video calls in minutes"
 
 ---

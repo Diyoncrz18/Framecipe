@@ -1,6 +1,6 @@
 # Toolkit Changelog
 
-All notable changes to claude-code-video-toolkit.
+All notable changes to Framecipe.
 
 > Releases are automated via GitHub Actions. See `.github/workflows/release.yml`.
 
@@ -525,7 +525,7 @@ before doing any work; both are fixed here.
   - `--list-presets` shows all available scene presets
   - Docker image: `ghcr.io/conalmullan/video-toolkit-flux2:latest` (baked model weights, ~15GB)
   - Apache 2.0 licensed model (commercial OK)
-- **"The Space Between"** — [showcase video](https://demos.digitalsamba.com/video/the-space-between.mp4) demonstrating end-to-end AI video creation
+- **"The Space Between"** — showcase video demonstrating end-to-end AI video creation
   - Avatar generated with flux2, voiced with Qwen3-TTS, animated with SadTalker, composed in Remotion
   - Concept, script, voice, visuals — all AI-generated
   - New video format: video essay (beyond sprint reviews and product demos)

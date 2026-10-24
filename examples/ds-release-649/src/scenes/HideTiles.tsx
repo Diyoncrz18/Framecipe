@@ -198,7 +198,7 @@ export const HideTiles: React.FC = () => {
 
   if (frame < SPLIT) {
     return (
-      <Stage url="dashboard.digitalsamba.com/teams/acme/rooms/all-hands" camera={CAMERA} path={PATH} clicks={HIDE_CLICKS}>
+      <Stage url="dashboard.example.com/teams/acme/rooms/all-hands" camera={CAMERA} path={PATH} clicks={HIDE_CLICKS}>
         <Dashboard
           hideOn={hideOn}
           hidden={hidden}

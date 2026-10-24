@@ -516,7 +516,7 @@ wheels = [
 ]
 
 [[package]]
-name = "claude-code-video-toolkit"
+name = "framecipe"
 version = "0.21.1"
 source = { virtual = "." }
 dependencies = [

@@ -2,11 +2,10 @@
 
 Marketing video demonstrating how the Digital Samba Claude Code skill accelerates video conferencing app development.
 
-> Contributed by [Digital Samba](https://digitalsamba.com)
+> Contributed by Digital Samba
 
 ## Watch the Finished Video
 
-**[Download MP4](https://demos.digitalsamba.com/video/digital-samba-skill-demo.mp4)**
 
 *See the finished result before you start!*
 
@@ -94,4 +93,4 @@ This example uses Digital Samba branding:
 
 ---
 
-*Contributed by [Digital Samba](https://digitalsamba.com) - European video conferencing API*
+*Contributed by Digital Samba - European video conferencing API*
