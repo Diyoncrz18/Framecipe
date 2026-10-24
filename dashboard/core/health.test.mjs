@@ -14,6 +14,26 @@ it('checkHealth dengan alat yang hilang', () => {
     claude: null, hooksInstalled: false, commandInstalled: false, isWorktree: false, sharedBrowser: false });
 });
 
+// R19: win32 passes uv/claude as one constant string with shell:true and no args array (an array plus a shell prints Node's DEP0190 warning);
+// other platforms pass (cmd, ['--version']) without a shell. npm never uses a shell.
+it('versi uv dan claude: bentuk pemanggilan spawnSync per platform', () => {
+  const calls = [];
+  const spawnSync = (...args) => { calls.push(args); return { status: 0, stdout: '1.2.3' }; };
+  checkHealth(makeFixtureRepo(), { spawnSync });
+
+  const npm = calls.find(([cmd]) => cmd === process.execPath);
+  expect(npm[1]).toEqual([expect.stringMatching(/npm-cli\.js$/), '--version']);
+  expect(npm[2].shell).toBeUndefined();
+
+  const tools = calls.filter(([cmd]) => ['uv', 'claude'].includes(String(cmd).split(' ')[0]));
+  if (process.platform === 'win32') {
+    expect(tools.map((c) => c.length)).toEqual([2, 2]); // (command, options), no args array
+    expect(tools.map(([cmd, opts]) => [cmd, opts.shell])).toEqual([['uv --version', true], ['claude --version', true]]);
+  } else {
+    expect(tools.map(([cmd, args, opts]) => [cmd, args, opts.shell])).toEqual([['uv', ['--version'], undefined], ['claude', ['--version'], undefined]]);
+  }
+});
+
 it('checkHealth: hook, command, worktree, browser bersama, dan status API key (tanpa nilainya)', () => {
   const root = makeFixtureRepo();
   const put = (rel, text) => { const f = path.join(root, ...rel.split('/')); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, text); };

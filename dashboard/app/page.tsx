@@ -37,6 +37,8 @@ export default function Home() {
                 <li className="sm:col-span-2"><Mark ok={false}>Ini worktree: run.mjs menolak berjalan di sini.</Mark></li>
               )}
             </ul>
+            {/* Only the count: keys and values never leave the server (NFR-03). */}
+            <p className="text-sm text-muted-foreground">{`API key terisi: ${health.env.filter((k) => k.present).length} dari ${health.env.length}`}</p>
             <Link href="/pengaturan" className="text-sm underline underline-offset-2">Detail di Pengaturan</Link>
           </CardContent>
         </Card>
