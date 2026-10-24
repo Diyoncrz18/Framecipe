@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { appendJsonLine, writeJsonAtomic } from './jsonfile.mjs';
 import { displayStatus, listRuns, markRunFailed, readRunDetail, runWindowEvents, skillUsage, summarizeRun } from './runs.mjs';
 import { readActiveRun, readRun, runPaths, sessionEventsPath, writeActiveRun, writeRun } from './run-store.mjs';
@@ -10,7 +10,7 @@ import { fixtureFlow, makeFixtureRepo } from './test-utils.mjs';
 //   root (add the run to an existing repo), status, stage, stagesEntered (default [stage]; every entered stage is closed except the current one of a running/waiting run),
 //   startedAt (default 01:53; `lastActivity` is an alias, the stages start one minute apart from there), endedAt (default 02:00 unless running/waiting),
 //   sessionId, active (writes the active-run marker),
-//   events: { <session>: [[ 'HH:MM:SS', type, summary, detail? ], ...] }.
+//   events: { <session>: [[ 'HH:MM:SS', type, summary, extra? ], ...] } (extra: fields merged into the event, e.g. { detail }, { phase, toolUseId }, { ok: false }).
 function seedRun(o = {}) {
   const root = o.root ?? makeFixtureRepo();
   const project = o.project ?? 'alpha', runId = o.runId ?? '20261024-0153-a1b2';
@@ -28,8 +28,8 @@ function seedRun(o = {}) {
   writeRun(root, run);
   writeJsonAtomic(runPaths(root, project, runId).flowFile, fixtureFlow());
   for (const [sid, events] of Object.entries(o.events ?? {})) {
-    for (const [hms, type, summary, detail] of events) {
-      appendJsonLine(sessionEventsPath(root, sid), { ts: `2026-10-24T${hms}.000Z`, sessionId: sid, runId: null, type, tool: null, summary, ok: true, ...(detail && { detail }) });
+    for (const [hms, type, summary, extra] of events) {
+      appendJsonLine(sessionEventsPath(root, sid), { ts: `2026-10-24T${hms}.000Z`, sessionId: sid, runId: null, type, tool: null, summary, ok: true, ...extra });
     }
   }
   if (o.active) writeActiveRun(root, { runId, project, sessionId: run.sessionId, startedAt });
@@ -146,7 +146,7 @@ it('readRunDetail: naskah saat menunggu, frame berurutan, run hilang atau rusak 
 });
 it('markRunFailed: Claude berhenti boleh, menutup tahap terbuka, dan tidak menyentuh penanda run lain', () => {
   const { root, project, runId } = seedRun({ status: 'running', stage: 'render', stagesEntered: ['setup', 'render'], sessionId: 's1', active: true,
-    events: { s1: [['01:54:00', 'stop', '', { backgroundTasks: 0 }]] } });
+    events: { s1: [['01:54:00', 'stop', '', { detail: { backgroundTasks: 0 } }]] } });
   markRunFailed(root, project, runId, 'Ditandai gagal.', NOW);
   const run = readRun(root, project, runId).value;
   expect(run).toMatchObject({ status: 'failed', endedAt: NOW.toISOString(), waitReason: null, error: { stage: 'render', message: 'Ditandai gagal.' } });
@@ -167,4 +167,66 @@ it('skillUsage: hitung run per skill, lastUsedAt terbaru, event di luar jendela 
     events: { s1: [['01:55:00', 'skill', 'a'], ['01:56:00', 'skill', 'a'], ['01:57:00', 'skill', 'b'], ['02:30:00', 'skill', 'c']] } });
   seedRun({ root, project: 'beta', runId: '20261024-0200-c3d4', status: 'success', sessionId: 's2', startedAt: '2026-10-24T01:57:30.000Z', events: { s2: [['01:58:00', 'skill', 'a']] } });
   expect(skillUsage(root)).toEqual({ a: { runs: 2, lastUsedAt: '2026-10-24T01:58:00.000Z' }, b: { runs: 1, lastUsedAt: '2026-10-24T01:57:00.000Z' } });
+});
+
+const STOP = ['01:54:00', 'stop', '', { detail: { backgroundTasks: 0 } }];
+const IDLE = ['01:55:00', 'notification', 'Claude is waiting for your input', { detail: { notificationType: 'idle_prompt' } }];
+const PERMISSION = ['01:56:00', 'notification', 'Claude needs your permission', { detail: { notificationType: 'permission_prompt' } }];
+
+it('displayStatus: StopFailure dan akhir sesi berarti Claude berhenti', () => {
+  const now = new Date('2026-10-24T02:10:00Z'); const recent = new Date('2026-10-24T02:09:00Z'); const run = { status: 'running' };
+  expect(displayStatus(run, { type: 'stop', ok: false, error: 'rate_limit' }, recent, now)).toBe('stopped');
+  expect(displayStatus(run, { type: 'session-end', detail: { reason: 'logout' } }, recent, now)).toBe('stopped');
+  expect(displayStatus(run, { type: 'stop', ok: true }, recent, now)).toBe('running'); // a stop that says nothing about background work
+});
+it('notifikasi idle_prompt setelah berhenti tidak menutupi status berhenti, permission_prompt tetap menunggu izin', () => {
+  const status = (events) => {
+    const { root, project, runId } = seedRun({ status: 'running', sessionId: 's1', events: { s1: events } });
+    return { root, project, runId, shown: listRuns(root, NOW)[0].displayStatus, detail: readRunDetail(root, project, runId, NOW).displayStatus };
+  };
+  const stopped = status([STOP, IDLE]);
+  expect([stopped.shown, stopped.detail]).toEqual(['stopped', 'stopped']);
+  markRunFailed(stopped.root, stopped.project, stopped.runId, 'Ditandai gagal.', NOW); // not refused until the 15-minute stale rule
+  expect(readRun(stopped.root, stopped.project, stopped.runId).value.status).toBe('failed');
+  expect(status([STOP, PERMISSION, IDLE]).shown).toBe('waiting-permission'); // the permission prompt is still the last event that counts
+  expect(status([STOP, IDLE, ['01:57:00', 'tool', 'Read']]).shown).toBe('running'); // Claude went on after the stop
+  expect(status([['01:54:00', 'session-end', '', { detail: { reason: 'other' } }], IDLE]).shown).toBe('stopped');
+  expect(status([['01:54:00', 'stop', '', { ok: false, detail: undefined }], IDLE]).shown).toBe('stopped');
+});
+it('tahap saat ini gagal pada run yang berakhir tanpa sukses, sama untuk yang sudah dan belum disapu', () => {
+  const states = (o) => { const r = seedRun({ stage: 'render', stagesEntered: ['setup', 'render'], ...o }); return readRunDetail(r.root, r.project, r.runId, NOW).stages.map(s => s.state); };
+  const failed = ['done', 'skipped', 'skipped', 'skipped', 'skipped', 'skipped', 'failed', 'pending', 'pending'];
+  expect(states({ status: 'abandoned' })).toEqual(failed); // swept: every stage closed
+  expect(states({ status: 'cancelled' })).toEqual(failed);
+  expect(states({ status: 'running', startedAt: '2026-10-24T01:00:00.000Z' })).toEqual(failed); // not swept yet: stored running, display abandoned
+  expect(states({ status: 'running' })[6]).toBe('active');
+  expect(states({ status: 'running', sessionId: 's1', events: { s1: [STOP] } })[6]).toBe('active'); // Claude stopped, the run can still go on
+  expect(states({ status: 'success', stage: 'done', stagesEntered: ['setup', 'render', 'done'] })[8]).toBe('done');
+});
+it('jendela run memuat event akhir perintah yang menutup run, bukan event akhir lain di luar jendela', () => {
+  const { root, project, runId } = seedRun({ status: 'success', sessionId: 's1', endedAt: '2026-10-24T02:00:00.000Z', events: { s1: [
+    ['01:58:00', 'command', 'node dashboard/bin/run.mjs render', { phase: 'start', toolUseId: 't0' }],
+    ['01:59:00', 'command', 'node dashboard/bin/run.mjs render', { phase: 'end', toolUseId: 't0', detail: { durationMs: 60000 } }],
+    ['01:59:55', 'command', 'node dashboard/bin/run.mjs finish', { phase: 'start', toolUseId: 't1' }],
+    ['02:00:05', 'command', 'node dashboard/bin/run.mjs finish', { phase: 'end', toolUseId: 't1' }], // run.json says endedAt 02:00:00 by now
+    ['02:00:06', 'command', 'npm test', { phase: 'end', toolUseId: 't9' }], // its start is not in the window
+    ['02:00:07', 'skill', 'sesudah'],
+  ] } });
+  const d = readRunDetail(root, project, runId);
+  expect(d.timeline.filter(t => t.type !== 'stage').map(t => [t.summary.split(' ').at(-1), t.phase])).toEqual([
+    ['render', 'start'], ['render', 'end'], ['finish', 'start'], ['finish', 'end']]);
+  expect(d.summary).toMatchObject({ commandCount: 2, renderMs: 60000 });
+  expect(runWindowEvents(root, d.run, NOW)).toHaveLength(4);
+});
+it('log sesi dibaca sekali per readRunDetail', () => {
+  const { root, project, runId } = seedRun({ status: 'running', sessionId: 's1', events: { s1: [STOP, IDLE] } });
+  const log = sessionEventsPath(root, 's1');
+  const spy = vi.spyOn(fs, 'readFileSync');
+  try {
+    readRunDetail(root, project, runId, NOW);
+    expect(spy.mock.calls.filter(([file]) => file === log)).toHaveLength(1);
+    spy.mockClear();
+    listRuns(root, NOW);
+    expect(spy.mock.calls.filter(([file]) => file === log)).toHaveLength(1);
+  } finally { spy.mockRestore(); }
 });
