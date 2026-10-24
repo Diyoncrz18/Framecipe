@@ -1,22 +1,32 @@
 import Link from "next/link";
+import { ActiveRunCard } from "@/components/active-run-card";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { CopyButton } from "@/components/copy-button";
 import { CreateVideoForm } from "@/components/create-video-form";
 import { CoreChecks, Mark } from "@/components/health-checks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { VideoCard } from "@/components/video-card";
-import { checkHealth } from "@/core/health.mjs";
 import { listProjects } from "@/core/projects.mjs";
+import { readActiveRun } from "@/core/run-store.mjs";
+import { readRunDetail } from "@/core/runs.mjs";
 import { flowName } from "@/lib/flow-name";
 import { loadFlowOptions } from "@/lib/flow-options";
+import { cachedHealth } from "@/lib/health-cache";
 import { ROOT } from "@/lib/root";
+import { isLive } from "@/lib/run-status";
 
 export default function Home() {
-  const health = checkHealth(ROOT);
+  const health = cachedHealth();
   const latest = listProjects(ROOT).slice(0, 6); // newest first
+  const active = readActiveRun(ROOT);
+  const detail = active ? readRunDetail(ROOT, active.project, active.runId) : null;
 
   return (
     <div className="flex flex-col gap-8">
+      {isLive(detail?.displayStatus) && <AutoRefresh intervalMs={2000} />}
       <h1 className="text-2xl font-semibold">Beranda</h1>
+
+      <ActiveRunCard active={active} detail={detail} />
 
       <Card>
         <CardHeader><CardTitle><h2>Buat video</h2></CardTitle></CardHeader>
