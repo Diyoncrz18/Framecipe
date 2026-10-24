@@ -174,4 +174,4 @@ With a phrase, skip Step 3. Still check the generated text (Step 6) before repor
 This command evolves through use. If something's awkward or missing:
 1. Say "improve this" → Claude captures it in `_internal/BACKLOG.md`
 2. Edit `.claude/commands/thumbnail.md` → update `_internal/CHANGELOG.md`
-- Issues/PRs: `github.com/digitalsamba/claude-code-video-toolkit`
+- Issues/PRs: `github.com/Diyoncrz18/Framecipe`

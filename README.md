@@ -30,7 +30,7 @@ Framecipe turns a written recipe into a finished video. You define the recipe on
 - [Troubleshooting](#troubleshooting)
 - [Development](#development)
 - [Roadmap](#roadmap)
-- [Credits and license](#credits-and-license)
+- [License](#license)
 
 ## Why Framecipe
 
@@ -217,7 +217,7 @@ Claude drives every stage through `node dashboard/bin/run.mjs <command>`. Each c
 
 ## AI and motion-graphics toolkit
 
-Framecipe is built on the [claude-code-video-toolkit](https://github.com/digitalsamba/claude-code-video-toolkit), and every part of it can be used in recipes or on its own.
+Framecipe ships with a full toolkit of templates, components, AI tools and Claude skills. Every part of it can be used in recipes or on its own.
 
 **Motion graphics (Remotion)**
 - **Templates:** `sprint-review`, `sprint-review-v2`, `product-demo`, `ai-engineering-review`, and `concept-explainer-short` (9:16, Python/moviepy).
@@ -314,9 +314,7 @@ npm run build     # Production build
 - **Gallery actions:** open the project folder, open it in Remotion Studio, and move items to a trash folder.
 - **Narration and music** as first-class, end-to-end tested recipe options.
 
-## Credits and license
-
-Framecipe is built on [claude-code-video-toolkit](https://github.com/digitalsamba/claude-code-video-toolkit) by Digital Samba, which provides the Remotion templates, components, transitions, brands, Claude skills and AI tools. Thanks to its author and contributors.
+## License
 
 Released under the [MIT License](LICENSE).
 

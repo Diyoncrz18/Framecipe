@@ -165,4 +165,4 @@ run a dry-run before the real upload.
 This command evolves through use. If something's awkward or missing:
 1. Say "improve this" → Claude captures it in `_internal/BACKLOG.md`
 2. Edit `.claude/commands/publish.md` → update `_internal/CHANGELOG.md`
-- Issues/PRs: `github.com/digitalsamba/claude-code-video-toolkit`
+- Issues/PRs: `github.com/Diyoncrz18/Framecipe`

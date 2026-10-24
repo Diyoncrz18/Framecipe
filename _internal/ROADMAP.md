@@ -2,7 +2,7 @@
 
 This document tracks the development of claude-code-video-toolkit.
 
-**Repository:** https://github.com/digitalsamba/claude-code-video-toolkit
+**Repository:** https://github.com/Diyoncrz18/Framecipe
 
 ---
 

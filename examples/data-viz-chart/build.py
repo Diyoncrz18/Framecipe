@@ -246,7 +246,7 @@ def build():
 
     # Title — top of frame, brand colour
     clips.append(fade(text_clip(
-        "github.com/digitalsamba/claude-code-video-toolkit",
+        "GitHub star history",
         size=44, color=NAVY,
         duration=DURATION, start=0.0,
         position=(80, 50),

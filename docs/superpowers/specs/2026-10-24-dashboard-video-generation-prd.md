@@ -722,5 +722,4 @@ Ketidaksesuaian antara registry dan isi folder di atas menjadi alasan REF-01 men
 
 - Claude Code, Legal and compliance: https://code.claude.com/docs/en/legal-and-compliance
 - Claude Code, Run Claude Code programmatically: https://code.claude.com/docs/en/headless
-- claude-code-video-toolkit (asal repo): https://github.com/digitalsamba/claude-code-video-toolkit
 - Lisensi Remotion: https://www.remotion.dev/license
