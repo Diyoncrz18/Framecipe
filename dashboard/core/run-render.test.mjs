@@ -113,6 +113,18 @@ it('finish gagal bila video tidak terbaca atau durasinya 0', () => {
   const b = setup({ probe: { ...GOOD, durationSeconds: 0 } }); writeVideo(b.root, b.runId, 'data');
   expect(finishRun(b.root, b.d)).toMatchObject({ status: 'failed', error: 'Durasi video 0 detik.' });
 });
+it('finish gagal (tahap render) bila hasil probe tanpa lebar, tinggi, atau fps positif, bukan run.json sukses yang melanggar skema', () => {
+  const { width, ...noWidth } = GOOD;
+  for (const probe of [noWidth, { ...GOOD, fps: 0 }, { ...GOOD, height: NaN }]) {
+    const { root, d, runId } = setup({ probe }); writeVideo(root, runId, 'data');
+    const r = finishRun(root, d);
+    expect(r).toMatchObject({ status: 'failed', output: null, error: expect.stringMatching(/^Hasil pembacaan video tidak valid: .+ harus berupa angka positif\.$/) });
+    const run = readRun(root, 'halo', runId).value;
+    expect(runSchema.safeParse(run).success).toBe(true);
+    expect(run).toMatchObject({ status: 'failed', output: null, error: { stage: 'render', message: r.error } });
+    expect(readActiveRun(root)).toBeNull();
+  }
+});
 it('finish sukses: run.json valid, sesi proyek bertambah, peringatan tanpa peringatan di batas 10%', () => {
   const { root, d, runId } = setup({ probe: { ...GOOD, durationSeconds: 27 } }); // exactly 10% off: not a warning
   writeVideo(root, runId, 'data');
