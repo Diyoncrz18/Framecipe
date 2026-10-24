@@ -69,7 +69,7 @@ export default function Page() {
         )}
       </section>
 
-      <p className="text-sm text-muted-foreground">Halaman langsung diperbarui otomatis setiap 2 detik.</p>
+      <p className="text-sm text-muted-foreground">Halaman Eksekusi dan Beranda (saat ada run aktif) diperbarui otomatis setiap 2 detik.</p>
     </div>
   );
 }
