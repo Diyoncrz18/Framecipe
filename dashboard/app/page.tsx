@@ -13,7 +13,6 @@ import { flowName } from "@/lib/flow-name";
 import { loadFlowOptions } from "@/lib/flow-options";
 import { cachedHealth } from "@/lib/health-cache";
 import { ROOT } from "@/lib/root";
-import { isLive } from "@/lib/run-status";
 
 export default function Home() {
   const health = cachedHealth();
@@ -23,7 +22,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-col gap-8">
-      {isLive(detail?.displayStatus) && <AutoRefresh intervalMs={2000} />}
+      {/* Always on, not only while a run is live: an idle Beranda must pick up a run that starts later (health is cached, so a refresh is cheap). */}
+      <AutoRefresh intervalMs={2000} />
       <h1 className="text-2xl font-semibold">Beranda</h1>
 
       <ActiveRunCard active={active} detail={detail} />
