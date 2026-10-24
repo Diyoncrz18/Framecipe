@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, it } from 'vitest';
 import { runSchema } from './contracts.mjs';
-import { readJson, writeJsonAtomic } from './jsonfile.mjs';
+import { appendJsonLine, readJson, writeJsonAtomic } from './jsonfile.mjs';
 import { defaultDeps, failRun, startRun, stageRun, statusRun, waitRun } from './run-ops.mjs';
-import { readActiveRun, readRun, requestPath, writeRun } from './run-store.mjs';
+import { readActiveRun, readRun, requestPath, sessionEventsPath, writeRun } from './run-store.mjs';
 import { at, fixtureFlow, makeFixtureRepo } from './test-utils.mjs';
 
 const deps = (clock) => ({ ...defaultDeps, now: () => clock, claudeVersion: () => '2.1.303', rand: () => 'a1b2' });
@@ -38,6 +38,32 @@ it('start ditolak saat ada run aktif yang masih hidup', () => {
   const root = makeFixtureRepo(); startRun(root, { flow: 'contoh-penjelasan', topic: 'A' }, deps(at('2026-10-24T01:53:00')));
   expect(() => startRun(root, { flow: 'contoh-penjelasan', topic: 'B' }, deps(at('2026-10-24T02:00:00'))))
     .toThrow(expect.objectContaining({ code: 'ACTIVE_RUN' }));
+});
+it('pesan ACTIVE_RUN menyebut proyek/runId dan tidak menyuruh finish atau fail', () => {
+  const root = makeFixtureRepo(); const a = startRun(root, { flow: 'contoh-penjelasan', topic: 'A' }, deps(at('2026-10-24T01:53:00')));
+  let message = '';
+  try { startRun(root, { flow: 'contoh-penjelasan', topic: 'B' }, deps(at('2026-10-24T02:00:00'))); } catch (e) { message = e.message; }
+  expect(message).toContain(`(a/${a.runId})`);
+  expect(message).toContain('halaman Eksekusi');
+  expect(message).not.toMatch(/\b(finish|fail)\b/);
+});
+// A running run bound to a session whose log ends with `notificationType` at 01:56, then a new start at 02:30 (34 minutes later).
+function startAfterLastNotification(notificationType) {
+  const root = makeFixtureRepo(); const a = startRun(root, { flow: 'contoh-penjelasan', topic: 'A' }, deps(at('2026-10-24T01:53:00')));
+  writeRun(root, { ...readRun(root, 'a', a.runId).value, sessionId: 's1' });
+  appendJsonLine(sessionEventsPath(root, 's1'), { ts: at('2026-10-24T01:56:00').toISOString(), sessionId: 's1', runId: a.runId, type: 'notification',
+    tool: null, summary: 'notif', detail: { notificationType }, ok: null });
+  return { root, a, restart: () => startRun(root, { flow: 'contoh-penjelasan', topic: 'B' }, deps(at('2026-10-24T02:30:00'))) };
+}
+it('start: run yang terakhir menunggu izin tetap hidup setelah 15 menit (JMB-05)', () => {
+  const { root, a, restart } = startAfterLastNotification('permission_prompt');
+  expect(restart).toThrow(expect.objectContaining({ code: 'ACTIVE_RUN' }));
+  expect(readRun(root, 'a', a.runId).value.status).toBe('running');
+});
+it('start: notifikasi idle_prompt bukan permintaan izin, run basi tetap disapu (R38)', () => {
+  const { root, a, restart } = startAfterLastNotification('idle_prompt');
+  restart();
+  expect(readRun(root, 'a', a.runId).value.status).toBe('abandoned');
 });
 it('start setelah run basi menandai run lama abandoned', () => {
   const root = makeFixtureRepo(); const a = startRun(root, { flow: 'contoh-penjelasan', topic: 'A' }, deps(at('2026-10-24T01:53:00')));

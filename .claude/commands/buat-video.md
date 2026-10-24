@@ -16,7 +16,8 @@ Kamu menjalankan **alur yang sudah disetujui pemiliknya** di dashboard. Ini buka
 - Setiap subperintah mencetak JSON. Bila `finish` mengembalikan `"status": "failed"`, baca alasannya di field `error`.
 - Awali setiap tahap dengan `node dashboard/bin/run.mjs stage <tahap>`.
 - Ubah file hanya di dalam `projects/<project>/`. Jangan mengubah `templates/`, `lib/`, `brands/`, `flows/`, atau `examples/`.
-- Jika sebuah langkah gagal dan tidak bisa kamu perbaiki dalam 2 percobaan, jalankan `node dashboard/bin/run.mjs fail --reason "<penjelasan singkat>"` lalu berhenti. Jangan pernah berhenti tanpa `finish` atau `fail`.
+- Setelah `start` berhasil: jika sebuah langkah gagal dan tidak bisa kamu perbaiki dalam 2 percobaan, jalankan `node dashboard/bin/run.mjs fail --reason "<penjelasan singkat>"` lalu berhenti. Jangan pernah berhenti tanpa `finish` atau `fail`.
+- Bila `start` gagal (misalnya masih ada run aktif lain), sampaikan pesannya ke pengguna lalu berhenti. Jangan menjalankan `fail`, `finish`, `stage`, atau subperintah lain: run aktif itu milik sesi lain.
 - Untuk `install` dan `render`, beri perintah Bash timeout 600000 ms.
 
 ## Langkah
@@ -25,7 +26,7 @@ Kamu menjalankan **alur yang sudah disetujui pemiliknya** di dashboard. Ini buka
    - `perbaiki=<runId>`: `node dashboard/bin/run.mjs start --retry <runId>`. Baca juga `error` di `run.json` milik run yang gagal, lalu lanjutkan dari file proyek yang sudah ada.
    - selain itu: `node dashboard/bin/run.mjs start --flow <id-alur> --topic "<topik>"`
 
-   Simpan `project` dan `runId` dari output JSON. Baca `projects/<project>/runs/<runId>/run.json` (topik, catatan) dan `projects/<project>/runs/<runId>/flow.json` (alur yang berlaku).
+   Bila `start` gagal, sampaikan pesannya ke pengguna lalu berhenti (jangan menjalankan `fail`, `finish`, `stage`, atau subperintah lain). Bila berhasil, simpan `project` dan `runId` dari output JSON. Baca `projects/<project>/runs/<runId>/run.json` (topik, catatan) dan `projects/<project>/runs/<runId>/flow.json` (alur yang berlaku).
 2. Muat setiap skill di `flow.skills` dengan tool Skill.
 3. Pelajari `flow.references`:
    - `example` atau `project`: baca sumbernya (`examples/<id>/src`, `projects/<id>/src`).
