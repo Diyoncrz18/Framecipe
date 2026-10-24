@@ -71,7 +71,8 @@ function usageByFlow(root) {
 }
 
 /** @returns {{ id: string, name: string, template: string | null, brand: string | null, aspectRatio: string | null, sceneCount: number, totalSeconds: number,
- *   targetSeconds: number, version: number, updatedAt: string | null, videoCount: number, lastUsedAt: string | null, errors: string[], warnings: string[], corrupt: boolean }[]} */
+ *   targetSeconds: number, version: number, updatedAt: string | null, skills: string[], videoCount: number, lastUsedAt: string | null, errors: string[], warnings: string[],
+ *   corrupt: boolean }[]} */
 export function listFlows(root) {
   let ids = [];
   try {
@@ -90,6 +91,7 @@ export function listFlows(root) {
       totalSeconds: Math.round(scenes.reduce((sum, s) => sum + num(s?.durationSeconds), 0) * 100) / 100,
       targetSeconds: num(f.output?.targetDurationSeconds),
       version: Number.isInteger(f.version) ? f.version : 0, updatedAt: text(f.updatedAt),
+      skills: Array.isArray(f.skills) ? f.skills.filter((s) => typeof s === 'string') : [],
       videoCount: usage.get(id)?.count ?? 0, lastUsedAt: usage.get(id)?.last ?? null,
       errors: r.errors, warnings: r.warnings, corrupt: r.corrupt,
     };

@@ -103,7 +103,7 @@ it('listFlows: ringkasan, peringatan durasi, tanpa folder titik, dan lastUsedAt'
   const list = listFlows(root);
   expect(list.map(f => f.id)).toEqual(['contoh-penjelasan', 'pendek']);
   expect(list[0]).toEqual({ id: 'contoh-penjelasan', name: 'Contoh Penjelasan', template: 'rem', brand: 'default', aspectRatio: '16:9', sceneCount: 4,
-    totalSeconds: 28, targetSeconds: 30, version: 1, updatedAt: '2026-10-24T00:00:00.000Z', videoCount: 0, lastUsedAt: null, errors: [], warnings: [], corrupt: false });
+    totalSeconds: 28, targetSeconds: 30, version: 1, updatedAt: '2026-10-24T00:00:00.000Z', skills: ['remotion-best-practices'], videoCount: 0, lastUsedAt: null, errors: [], warnings: [], corrupt: false });
   expect(list[1].warnings).toHaveLength(1);
   startRun(root, { flow: 'pendek', topic: 'A' }, testDeps());
   const used = listFlows(root).find(f => f.id === 'pendek');
