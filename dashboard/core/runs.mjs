@@ -1,7 +1,7 @@
 // Effective status, timeline and summary of runs, derived from run.json plus the bound session's event log (JMB-05, PRD 9.1).
 // A run.json, event line or event file that is broken marks that one item corrupt or empty and never throws (NFR-07).
 import fs from 'node:fs';
-import { STAGES, runSchema } from './contracts.mjs';
+import { STAGES, eventSchema, runSchema } from './contracts.mjs';
 import { readJson, readJsonLines, writeJsonAtomic } from './jsonfile.mjs';
 import { STAGE_LABELS, STATUS_LABELS } from './labels.mjs';
 import { resolveInside } from './paths.mjs';
@@ -24,7 +24,8 @@ const isName = (s) => typeof s === 'string' && s !== '' && !s.startsWith('.') &&
 function sessionEvents(root, sessionId) {
   if (!sessionId) return [];
   // readJsonLines rethrows anything but ENOENT (a folder, no permission): that log counts as empty.
-  return attempt(() => readJsonLines(sessionEventsPath(root, sessionId)).items.filter((e) => typeof e?.ts === 'string'), []);
+  // A line that parses as JSON but is not an event (an object summary, an unknown type) is skipped: the views render these fields as text.
+  return attempt(() => readJsonLines(sessionEventsPath(root, sessionId)).items.filter((e) => eventSchema.safeParse(e).success), []);
 }
 
 // `all`: the session's events. The trigger prompt is the last prompt at or before the run's start; the window ends when the run did, or at `now`.

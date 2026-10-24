@@ -111,8 +111,24 @@ it('log sesi rusak atau tak terbaca tidak menjatuhkan listRuns, readRunDetail, d
   expect(readRunDetail(root, project, runId, NOW)).toMatchObject({ timeline: expect.any(Array), summary: { commandCount: 0 } });
   expect(skillUsage(root)).toEqual({});
   fs.rmSync(log, { recursive: true });
-  fs.writeFileSync(log, `{"ts":"2026-10-24T01:55:00.000Z","type":"skill","summary":"ok","ok":true}\n{rusak\n`);
+  fs.writeFileSync(log, `{"ts":"2026-10-24T01:55:00.000Z","sessionId":"s1","runId":null,"type":"skill","tool":null,"summary":"ok","ok":true}\n{rusak\n`);
   expect(readRunDetail(root, project, runId, NOW).summary.skillsUsed).toEqual(['ok']);
+});
+// A line that is JSON but has the wrong shape (here an object summary) used to reach the Timeline and RunPanel and crash them into error.tsx.
+it('baris event yang bentuknya salah dilewati, event hook tanpa summary tetap dibaca', () => {
+  const { root, project, runId } = seedRun({ status: 'running', sessionId: 's1', events: { s1: [['01:55:00', 'skill', 'ok']] } });
+  const log = sessionEventsPath(root, 's1');
+  const line = { ts: '2026-10-24T01:56:00.000Z', sessionId: 's1', runId: null, type: 'skill', tool: null, ok: true };
+  appendJsonLine(log, { ...line, summary: { nama: 'objek' } });
+  appendJsonLine(log, { ...line, type: 'bukan-tipe', summary: 'x' });
+  appendJsonLine(log, { ...line, ts: 'kemarin', summary: 'y' });
+  const run = readRun(root, project, runId).value;
+  expect(runWindowEvents(root, run, NOW).map(e => e.summary)).toEqual(['ok']);
+  expect(readRunDetail(root, project, runId, NOW).timeline.filter(e => e.type === 'skill').map(e => e.summary)).toEqual(['ok']);
+  expect(skillUsage(root, NOW)).toEqual({ ok: { runs: 1, lastUsedAt: '2026-10-24T01:55:00.000Z' } });
+  // The hook writes stop, session-start and session-end events without a summary: they must not be dropped with the bad lines.
+  appendJsonLine(log, { ts: '2026-10-24T01:57:00.000Z', sessionId: 's1', runId: null, type: 'stop', tool: null, ok: true, detail: { backgroundTasks: 0 } });
+  expect(listRuns(root, NOW)[0].displayStatus).toBe('stopped');
 });
 it('listRuns: urut startedAt menurun dan status efektif memakai now', () => {
   const root = makeFixtureRepo();
