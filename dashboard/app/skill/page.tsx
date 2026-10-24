@@ -53,7 +53,8 @@ function CatalogTable({ id, title, items, filled, use }: {
         <TableBody>
           {items.map((i) => {
             const name = i.skillName ?? i.id;
-            const used = use?.runs[name];
+            // hasOwn: runs is a plain object keyed by skill names, so a skill called "constructor" must not find an inherited property.
+            const used = use && Object.hasOwn(use.runs, name) ? use.runs[name] : undefined;
             return (
               <TableRow key={i.id}>
                 <TableCell className={`${WRAP} font-medium`}>
