@@ -1,8 +1,9 @@
 import { CircleAlert, CircleCheck, TriangleAlert, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { ArchiveButton } from "@/components/flow-editor/archive-button";
+import { DuplicateButton } from "@/components/flow-editor/duplicate-button";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { listFlows } from "@/core/flows.mjs";
 import { formatDate } from "@/lib/format";
@@ -70,7 +71,7 @@ export default function Page() {
                     <div className="flex gap-2">
                       {/* A flow with errors cannot be copied (duplicateFlow needs a usable one); it can still be fixed or archived. */}
                       <form action={duplicateFlowAction.bind(null, f.id)}>
-                        <Button type="submit" variant="outline" size="sm" disabled={f.errors.length > 0} aria-label={`Duplikat alur ${f.name}`}>Duplikat</Button>
+                        <DuplicateButton name={f.name} disabled={f.errors.length > 0} />
                       </form>
                       <ArchiveButton id={f.id} name={f.name} />
                     </div>
