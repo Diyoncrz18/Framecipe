@@ -4,9 +4,10 @@ import path from 'node:path';
 
 // Never throws for a bad file: the caller shows a "Data rusak" item, not an error page (NFR-07).
 // A file that cannot be read for another reason (a folder, no permission) also counts as corrupt.
+// A leading UTF-8 BOM (some Windows editors add one) is dropped: JSON.parse rejects it.
 export function readJson(file) {
   try {
-    return { ok: true, value: JSON.parse(fs.readFileSync(file, 'utf8')) };
+    return { ok: true, value: JSON.parse(fs.readFileSync(file, 'utf8').replace(/^﻿/, '')) };
   } catch (e) {
     return { ok: false, error: e.code === 'ENOENT' ? 'missing' : 'corrupt', message: e.message };
   }
