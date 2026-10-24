@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { BrandPreview } from "@/components/brand-preview";
 import { CopyButton } from "@/components/copy-button";
+import type { FlowOption } from "@/components/flow-select";
 import { MismatchBadge } from "@/components/mismatch-badge";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UseInFlow } from "@/components/use-in-flow";
 import { readCatalog, type Catalog } from "@/core/catalog.mjs";
+import { loadFlowOptions } from "@/lib/flow-options";
 import { mediaUrl } from "@/lib/media";
 import { ROOT } from "@/lib/root";
 
@@ -36,7 +39,7 @@ function Item({ title, description, badges, children }: { title: string; descrip
   );
 }
 
-function Examples({ items }: { items: Catalog["examples"] }) {
+function Examples({ items, flows }: { items: Catalog["examples"]; flows: FlowOption[] }) {
   return items.map((e) => (
     <Item
       key={e.id}
@@ -57,11 +60,13 @@ function Examples({ items }: { items: Catalog["examples"] }) {
           {e.mismatch !== "missing-folder" && <CopyButton text={`cd examples/${e.id} && npm install && npm run render`} />}
         </div>
       )}
+      {/* A flow can only use what sits on disk, like the flow editor's picker. */}
+      {e.source !== "registry" && <UseInFlow kind="example" id={e.id} flows={flows} />}
     </Item>
   ));
 }
 
-function Templates({ items }: { items: Catalog["templates"] }) {
+function Templates({ items, flows }: { items: Catalog["templates"]; flows: FlowOption[] }) {
   return items.map((t) => (
     <Item
       key={t.id}
@@ -76,11 +81,12 @@ function Templates({ items }: { items: Catalog["templates"] }) {
       <p className="text-sm">
         Rasio {t.aspectRatio === "unknown" ? DASH : t.aspectRatio} · {t.width && t.height ? `${t.width}×${t.height}` : DASH}
       </p>
+      {t.source !== "registry" && <UseInFlow kind="template" id={t.id} flows={flows} />}
     </Item>
   ));
 }
 
-function Brands({ items }: { items: Catalog["brands"] }) {
+function Brands({ items, flows }: { items: Catalog["brands"]; flows: FlowOption[] }) {
   // A broken brand.json shows as its own item; the other brands are unaffected (NFR-07).
   return items.map((b) => {
     if (!b.brand) return <Item key={b.id} title={b.corrupt ? "Data rusak" : b.id} description={`Folder: brands/${b.id}`} />;
@@ -88,26 +94,29 @@ function Brands({ items }: { items: Catalog["brands"] }) {
     return (
       <Item key={b.id} title={name} description={b.description}>
         <BrandPreview name={name} brand={b.brand} logo={b.logo} />
+        <UseInFlow kind="brand" id={b.id} flows={flows} />
       </Item>
     );
   });
 }
 
-function Transitions({ items }: { items: Catalog["transitions"] }) {
+function Transitions({ items, flows }: { items: Catalog["transitions"]; flows: FlowOption[] }) {
   return items.map((t) => (
     <Item key={t.id} title={t.id} description={t.description}>
       <dl className="flex flex-col gap-1 text-sm">
         <div><dt className="inline font-medium">Opsi: </dt><dd className="inline">{Array.isArray(t.options) && t.options.length ? t.options.join(", ") : DASH}</dd></div>
         <div><dt className="inline font-medium">Cocok untuk: </dt><dd className="inline">{t.bestFor ?? DASH}</dd></div>
       </dl>
+      <UseInFlow kind="transition" id={t.id} flows={flows} />
     </Item>
   ));
 }
 
-function Components({ items }: { items: Catalog["components"] }) {
+function Components({ items, flows }: { items: Catalog["components"]; flows: FlowOption[] }) {
   return items.map((c) => (
     <Item key={c.id} title={c.id} description={c.description}>
       <p className="break-all font-mono text-xs text-muted-foreground">{c.path}</p>
+      <UseInFlow kind="component" id={c.id} flows={flows} />
     </Item>
   ));
 }
@@ -117,6 +126,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   const requested = first(sp.tab);
   const tab = TABS.some((t) => t.id === requested) ? requested : "contoh";
   const catalog = readCatalog(ROOT);
+  const flows = loadFlowOptions();
 
   return (
     <div className="flex flex-col gap-6">
@@ -140,11 +150,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
       </nav>
 
       <ul className={GRID}>
-        {tab === "contoh" && <Examples items={catalog.examples} />}
-        {tab === "template" && <Templates items={catalog.templates} />}
-        {tab === "brand" && <Brands items={catalog.brands} />}
-        {tab === "transisi" && <Transitions items={catalog.transitions} />}
-        {tab === "komponen" && <Components items={catalog.components} />}
+        {tab === "contoh" && <Examples items={catalog.examples} flows={flows} />}
+        {tab === "template" && <Templates items={catalog.templates} flows={flows} />}
+        {tab === "brand" && <Brands items={catalog.brands} flows={flows} />}
+        {tab === "transisi" && <Transitions items={catalog.transitions} flows={flows} />}
+        {tab === "komponen" && <Components items={catalog.components} flows={flows} />}
       </ul>
     </div>
   );
