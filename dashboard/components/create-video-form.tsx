@@ -51,7 +51,9 @@ export function CreateVideoForm({ flows, defaultFlow }: { flows: FlowOption[]; d
     setPending(false);
   }
 
-  if (flows.length === 0) return <p className="text-muted-foreground">Belum ada alur. Buat alur dulu di halaman Alur.</p>;
+  if (flows.length === 0) {
+    return <p className="text-muted-foreground">Belum ada alur. <Link href="/alur/baru" className="underline underline-offset-2">Buat alur dulu</Link>.</p>;
+  }
   return (
     <div className="flex max-w-2xl flex-col gap-4">
       <form onSubmit={submit} noValidate className="flex flex-col gap-4">
@@ -76,19 +78,18 @@ export function CreateVideoForm({ flows, defaultFlow }: { flows: FlowOption[]; d
         <div><Button type="submit" disabled={pending}>Buat prompt</Button></div>
       </form>
 
-      {/* Always in the page, so a screen reader announces the result when it appears. */}
-      <div role="status" className="flex flex-col gap-2 empty:hidden">
-        {prompt && (
-          <>
-            <div className="flex flex-wrap items-center gap-2">
-              <code className="break-all rounded bg-muted px-2 py-1 text-sm">{prompt}</code>
-              <CopyButton text={prompt} />
-            </div>
-            <p className="text-sm">Tempel di Claude Code yang dibuka di folder repo utama (bukan worktree). Pantau di halaman Eksekusi.</p>
-            <Link href="/eksekusi" className="w-fit text-sm underline underline-offset-2">Buka halaman Eksekusi</Link>
-          </>
-        )}
-      </div>
+      {prompt && (
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <code className="break-all rounded bg-muted px-2 py-1 text-sm">{prompt}</code>
+            <CopyButton text={prompt} />
+          </div>
+          <p className="text-sm">Tempel di Claude Code yang dibuka di folder repo utama (bukan worktree). Pantau di halaman Eksekusi.</p>
+          <Link href="/eksekusi" className="w-fit text-sm underline underline-offset-2">Buka halaman Eksekusi</Link>
+        </div>
+      )}
+      {/* The one live region: always in the accessibility tree (never display:none), outside the result so CopyButton's own live text does not double up. */}
+      <p role="status" className="sr-only">{prompt ? `Prompt siap: ${prompt}` : ""}</p>
     </div>
   );
 }
