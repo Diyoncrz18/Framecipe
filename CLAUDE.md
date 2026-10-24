@@ -839,3 +839,7 @@ Keep these separate. Don't mix toolkit improvements with video production.
 - `docs/creating-templates.md` - Build new templates
 - `docs/creating-brands.md` - Create brand profiles
 - `docs/optional-components.md` - Setup for optional ML-based tools (ProPainter, etc.)
+
+## Dashboard & /buat-video
+
+Dashboard lokal ada di `dashboard/`. Jalankan `cd dashboard && npm run dev`, lalu buka http://127.0.0.1:3210. Video dari alur dibuat dengan `/buat-video`; aturan lengkapnya ada di `.claude/commands/buat-video.md`. Setiap langkah pipeline lewat `node dashboard/bin/run.mjs <start|stage|wait|install|render|stills|finish|fail|status>`, dan jalankan dari folder repo utama, bukan worktree. Data runtime ada di `.dashboard/` (diabaikan git). Spesifikasi: `docs/superpowers/specs/2026-10-24-dashboard-video-generation-prd.md`.

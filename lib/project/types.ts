@@ -175,6 +175,12 @@ export interface VideoProject {
 
   /** Session history for context */
   sessions: SessionEntry[];
+  /** Alur dashboard yang dipakai (flows/<id>), bila dibuat lewat /buat-video */
+  flow?: string;
+  /** Topik dari permintaan dashboard */
+  topic?: string;
+  /** Run terakhir di projects/<name>/runs/ */
+  latestRun?: string;
 }
 
 // ============================================================================
