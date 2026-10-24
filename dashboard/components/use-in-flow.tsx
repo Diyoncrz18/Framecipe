@@ -39,7 +39,8 @@ export function UseInFlow({ kind, id, flows }: { kind: string; id: string; flows
         </div>
         <Button type="button" variant="outline" disabled={!flow || pending} onClick={add}>Pakai di alur</Button>
       </div>
-      <div role="status" className="text-sm empty:hidden">
+      {/* Always in the accessibility tree: empty, it is taken out of the layout (so no gap) but never display:none. */}
+      <div role="status" className="text-sm empty:sr-only">
         {outcome?.ok && <p className="flex items-center gap-1.5 text-green-800"><CircleCheck aria-hidden="true" className="size-4 shrink-0" />{outcome.text}</p>}
       </div>
       {outcome && !outcome.ok && (
