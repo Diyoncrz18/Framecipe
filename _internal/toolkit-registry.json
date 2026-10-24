@@ -2,7 +2,7 @@
   "name": "claude-code-video-toolkit",
   "version": "0.21.1",
   "description": "AI-native video production workspace for Claude Code",
-  "repository": "https://github.com/digitalsamba/claude-code-video-toolkit",
+  "repository": "https://github.com/Diyoncrz18/Framecipe",
   "skills": {
     "remotion-official": {
       "path": ".claude/skills/remotion-official/",

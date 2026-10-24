@@ -2,7 +2,7 @@
 
 An animated time-series chart with deterministic text overlay. Demonstrates the **"matplotlib for data, moviepy for trustworthy text"** pattern — the natural production pipeline for news graphics, dashboards, and any data-driven scene where the labels need to be exact.
 
-Renders out of the box with the included `data/star_series.json` (real GitHub star history of `digitalsamba/claude-code-video-toolkit`).
+Renders out of the box with the included `data/star_series.json` (real GitHub star history of an open-source repository).
 
 ## Quick start
 

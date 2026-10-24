@@ -919,7 +919,7 @@ before doing any work; both are fixed here.
 ## 2025-12-08
 
 ### Added
-- **Open source release** - Published to GitHub at digitalsamba/claude-code-video-toolkit
+- **Open source release** - Published to GitHub
 - **Brand profiles system** (`brands/`)
   - `brand.json` for colors, fonts, typography
   - `voice.json` for ElevenLabs voice settings

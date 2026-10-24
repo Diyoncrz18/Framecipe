@@ -477,7 +477,7 @@ This command evolves through use. If something's awkward or missing:
 3. Share upstream → `gh pr create`
 
 **Remote contributions:**
-- Issues: `github.com/digitalsamba/claude-code-video-toolkit/issues`
+- Issues: `github.com/Diyoncrz18/Framecipe/issues`
 - PRs welcome for new features, bug fixes, documentation
 
 History: `/new-sprint-video` → `/new-video` → `/video` (unified with resume support)

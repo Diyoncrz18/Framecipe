@@ -42,7 +42,7 @@ Then generate issue with `gh issue create`:
 
 ```bash
 gh issue create \
-  --repo digitalsamba/claude-code-video-toolkit \
+  --repo Diyoncrz18/Framecipe \
   --title "Bug: description" \
   --body "## Description
 
@@ -496,5 +496,5 @@ This command evolves through use. If something's awkward or missing:
 3. Share upstream → `gh pr create`
 
 **Remote contributions:**
-- Issues: `github.com/digitalsamba/claude-code-video-toolkit/issues`
+- Issues: `github.com/Diyoncrz18/Framecipe/issues`
 - PRs welcome for contribution workflow improvements

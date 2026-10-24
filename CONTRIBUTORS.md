@@ -29,7 +29,7 @@ Your name/organization and website will be credited in:
 Submit a PR and you'll be added to the contributors list.
 
 **Report issues or suggest features:**
-Open an issue at [github.com/digitalsamba/claude-code-video-toolkit/issues](https://github.com/digitalsamba/claude-code-video-toolkit/issues)
+Open an issue at [github.com/Diyoncrz18/Framecipe/issues](https://github.com/Diyoncrz18/Framecipe/issues)
 
 ---
 

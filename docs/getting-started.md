@@ -39,8 +39,8 @@ No API keys needed. Edit `src/config/sprint-config.ts` to customize content.
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/digitalsamba/claude-code-video-toolkit.git
-   cd claude-code-video-toolkit
+   git clone https://github.com/Diyoncrz18/Framecipe.git
+   cd Framecipe
    ```
 
 2. **Install Python dependencies with [uv](https://docs.astral.sh/uv/)**

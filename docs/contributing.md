@@ -13,7 +13,7 @@ This toolkit is designed to grow through use. Every interaction is an opportunit
 
 ### Remote Contributors (via GitHub)
 
-- **Issues**: [github.com/digitalsamba/claude-code-video-toolkit/issues](https://github.com/digitalsamba/claude-code-video-toolkit/issues)
+- **Issues**: [github.com/Diyoncrz18/Framecipe/issues](https://github.com/Diyoncrz18/Framecipe/issues)
   - Bug reports, feature requests, questions
 - **Pull Requests**: Fork, improve, submit PR
   - New templates, skills, commands
@@ -89,7 +89,7 @@ If you want to be extra careful:
 
 ```bash
 # Clone fresh
-git clone https://github.com/digitalsamba/claude-code-video-toolkit ~/toolkit-contrib
+git clone https://github.com/Diyoncrz18/Framecipe ~/toolkit-contrib
 cd ~/toolkit-contrib
 
 # Copy only the files you improved
