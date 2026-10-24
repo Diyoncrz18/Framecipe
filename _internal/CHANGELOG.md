@@ -8,6 +8,10 @@ All notable changes to Framecipe.
 
 ## Unreleased
 
+### Removed
+
+- Digital Samba example projects (`ds-release-649`, `ds-free-schedule-demo`, `digital-samba-skill-demo`, `sprint-review-cho-oyu`, `ds-crt-stinger`) and brand profiles (`digital-samba`, `digital-samba-ai-engineering`, `digital-samba-townhall`).
+
 ### Added
 
 - **Synthetic UI demos as a toolkit feature**: shared `Stage` and `Cursor` components in `lib/components` (a browser window with camera zoom/pan keyframes and a scripted cursor), and a `synthetic-ui-demo` skill. The skill covers rebuilding an app's screens from its source, a frame-based timeline anchored to the voice lines, measuring click targets from stills, and labelling AI-generated people. `examples/ds-release-649` and `examples/ds-free-schedule-demo` are the reference builds.

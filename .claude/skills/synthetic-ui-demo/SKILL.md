@@ -10,12 +10,9 @@ React, and a scripted cursor and camera perform the flow in Remotion. Every clic
 re-renders identically, never needs a seeded account or a live environment, and is updated by editing code when the
 product changes.
 
-**Reference builds** (read them alongside this skill; both build without the product repos):
-
-- `examples/ds-free-schedule-demo`: one 26s flow (schedule a call) with a narrator tile. The simplest complete case.
-  Its `src/Demo.tsx` is a single timeline with every cursor keyframe, click and camera move.
-- `examples/ds-release-649`: an 80s release-notes video, eight scenes across three apps. `src/Release.tsx` sequences
-  the scenes, `src/scenes/` has one file per release item, and `src/room/` and `src/ac/` are the screen kits.
+**Project shape.** A single flow fits in one `src/Demo.tsx` timeline that holds every cursor keyframe, click and
+camera move. A longer video sequences one file per scene under `src/scenes/` and keeps the rebuilt product screens
+(the screen kits) in their own folders inside the project, not in `lib/`.
 
 ## When to use this vs. Playwright
 
@@ -89,7 +86,7 @@ and the default values to show.
 
 A line that lists several things ("scheduling, contacts, recordings and transcripts") is too fast for one shot.
 Split the audio at its pauses into phrase files (`07a`, `07b`, ...), give each phrase its own shot, and place each
-phrase on its own beat. `ds-release-649`'s `moreVo` field does this.
+phrase on its own beat.
 
 ### 5. Measure click targets from a contact sheet before the full render
 

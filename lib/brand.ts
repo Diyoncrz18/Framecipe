@@ -106,7 +106,7 @@ function findToolkitRoot(startDir: string): string | null {
 /**
  * Load a brand by name from the brands/ directory
  *
- * @param brandName - Name of the brand folder (e.g., 'digital-samba', 'default')
+ * @param brandName - Name of the brand folder (e.g., 'default', 'my-brand')
  * @param projectDir - Optional project directory to search from (defaults to cwd)
  * @returns Brand object
  * @throws Error if brand not found

@@ -106,7 +106,7 @@ export const sprintConfig = {
 
 ## Example Projects
 
-- sprint-review-cho-oyu (in projects/)
+- my-sprint-review (in projects/)
 
 ## Usage
 

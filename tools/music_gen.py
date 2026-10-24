@@ -39,7 +39,7 @@ Examples:
   # Scene presets for video production
   uv run tools/music_gen.py --preset corporate-bg --duration 60 --output bg.mp3
   uv run tools/music_gen.py --preset tension --duration 20 --output problem.mp3
-  uv run tools/music_gen.py --preset cta --duration 15 --brand digital-samba --output cta.mp3
+  uv run tools/music_gen.py --preset cta --duration 15 --brand default --output cta.mp3
 
   # Cover / style transfer
   uv run tools/music_gen.py --cover --reference theme.mp3 --prompt "Same style, longer" --duration 90 --output extended.mp3
@@ -253,7 +253,7 @@ def list_presets():
     print("Usage:")
     print("  music_gen.py --preset corporate-bg --duration 60 --output bg.mp3")
     print("  music_gen.py --preset tension --duration 20 --output problem.mp3")
-    print("  music_gen.py --preset cta --brand digital-samba --duration 15 --output cta.mp3")
+    print("  music_gen.py --preset cta --brand default --duration 15 --output cta.mp3")
     print()
 
 
@@ -1161,7 +1161,7 @@ Examples:
   %(prog)s --prompt "Subtle corporate tech" --duration 60 --output bg.mp3
   %(prog)s --prompt "Upbeat electronic" --duration 30 --bpm 128 --key "G Major" --output intro.mp3
   %(prog)s --preset corporate-bg --duration 60 --output bg.mp3
-  %(prog)s --preset cta --brand digital-samba --duration 15 --output cta.mp3
+  %(prog)s --preset cta --brand default --duration 15 --output cta.mp3
   %(prog)s --cover --reference theme.mp3 --prompt "Same style" --duration 90 --output ext.mp3
   %(prog)s --extract vocals --input mixed.mp3 --output vocals.mp3
   %(prog)s --list-presets

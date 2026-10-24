@@ -67,7 +67,7 @@ cat caption.json | uv run tools/ideogram4.py --json - --output title.png
 uv run tools/ideogram4.py --prompt "Title card: 'AI ENGINEERING REVIEW' bold white on dark" --output title.png
 
 # Inject brand hex colors into the caption's palette (JSON mode)
-uv run tools/ideogram4.py --json caption.json --brand digital-samba --output cta.png
+uv run tools/ideogram4.py --json caption.json --brand default --output cta.png
 
 # Quality tier + resolution
 uv run tools/ideogram4.py --json caption.json --speed QUALITY --resolution 2048x2048 --output slide.png

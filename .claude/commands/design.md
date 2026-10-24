@@ -234,7 +234,7 @@ Claude: Let me discover your project...
 
 Found project: "q4-release-video"
 Template: sprint-review
-Brand: digital-samba
+Brand: my-brand
 
 ## Design Refinement
 

@@ -17,8 +17,6 @@ updates:
       - /templates/product-demo
       - /templates/ai-engineering-review
       - /examples/hello-world
-      - /examples/digital-samba-skill-demo/remotion
-      - /examples/sprint-review-cho-oyu/remotion
       - /showcase/transitions
       - /showcase/banner
       - /tests/render-baseline

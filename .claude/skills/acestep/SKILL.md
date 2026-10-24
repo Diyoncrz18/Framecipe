@@ -42,7 +42,7 @@ uv run tools/music_gen.py --prompt "Calm ambient piano" --duration 30 --bpm 72 -
 # Scene presets (video production)
 uv run tools/music_gen.py --preset corporate-bg --duration 60 --output bg.mp3
 uv run tools/music_gen.py --preset tension --duration 20 --output problem.mp3
-uv run tools/music_gen.py --preset cta --brand digital-samba --duration 15 --output cta.mp3
+uv run tools/music_gen.py --preset cta --brand default --duration 15 --output cta.mp3
 
 # Vocals with lyrics
 uv run tools/music_gen.py --prompt "Indie pop jingle" --lyrics "[verse]\nBuild it better\nShip it faster" --duration 30 --output jingle.mp3

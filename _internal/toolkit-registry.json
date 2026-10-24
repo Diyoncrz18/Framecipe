@@ -100,7 +100,7 @@
       "path": ".claude/skills/synthetic-ui-demo/",
       "description": "Product demo and release-notes videos with no screen recording: rebuild the app's screens as static React from its source, drive them with a scripted cursor and camera (Stage + Cursor)",
       "status": "beta",
-      "note": "Reference builds: examples/ds-free-schedule-demo (one flow) and examples/ds-release-649 (a whole release). Product screen kits stay in the project, not lib.",
+      "note": "Product screen kits stay in the project, not lib.",
       "created": "2026-10-21",
       "updated": "2026-10-21"
     }
@@ -690,7 +690,7 @@
     "flux2": {
       "path": "tools/flux2.py",
       "description": "AI image generation and editing using FLUX.2 Klein (4B by default, Apache-2.0; 9B as a non-commercial Modal opt-in) - text-to-image, image editing, and scene presets",
-      "usage": "uv run tools/flux2.py --preset title-bg --brand digital-samba",
+      "usage": "uv run tools/flux2.py --preset title-bg --brand default",
       "status": "beta",
       "category": "image-generation",
       "backend": "flux2-klein-4b (default) / flux2-klein-9b (FLUX2_MODEL=klein-9b at Modal deploy time); flux2-small-decoder on Modal",
@@ -1286,12 +1286,6 @@
       "description": "Clean, professional brand with orange accent",
       "created": "2025-12-08",
       "updated": "2025-12-08"
-    },
-    "digital-samba": {
-      "path": "brands/digital-samba/",
-      "description": "Digital Samba - European video conferencing platform",
-      "created": "2025-12-09",
-      "updated": "2025-12-09"
     }
   },
   "examples": {
@@ -1301,20 +1295,6 @@
       "template": "sprint-review",
       "complexity": "beginner",
       "created": "2026-02-24"
-    },
-    "digital-samba-skill-demo": {
-      "path": "examples/digital-samba-skill-demo/",
-      "description": "Marketing video for Claude Code skill",
-      "template": "product-demo",
-      "complexity": "intermediate",
-      "contributor": "Digital Samba"
-    },
-    "sprint-review-cho-oyu": {
-      "path": "examples/sprint-review-cho-oyu/",
-      "description": "iOS sprint review for Digital Samba Mobile",
-      "template": "sprint-review",
-      "complexity": "intermediate",
-      "contributor": "Digital Samba"
     },
     "the-space-between": {
       "path": null,
@@ -1340,14 +1320,6 @@
       "complexity": "beginner",
       "created": "2026-04-08"
     },
-    "ds-crt-stinger": {
-      "path": "examples/ds-crt-stinger/",
-      "description": "6s brand stinger — LTX-2 crt-terminal LoRA footage + post-processed grunged logo",
-      "template": null,
-      "stack": "ltx2+python-moviepy",
-      "complexity": "intermediate",
-      "created": "2026-04-21"
-    },
     "sky-blue-short": {
       "path": "examples/sky-blue-short/",
       "description": "52s vertical 9:16 'Why is the sky blue?' — concept-explainer-short showcase; all assets committed, re-renders with build.py",
@@ -1355,24 +1327,6 @@
       "stack": "python-moviepy",
       "complexity": "intermediate",
       "created": "2026-06-10"
-    },
-    "ds-release-649": {
-      "path": "examples/ds-release-649/",
-      "description": "80s synthetic release-notes video for Digital Samba 649: room, dashboard and account-center screens rebuilt from product code and driven by a scripted cursor and camera; Lugh voice (Qwen3 clone), FLUX.2 portraits",
-      "template": "custom",
-      "stack": "remotion",
-      "complexity": "advanced",
-      "contributor": "Digital Samba",
-      "created": "2026-10-21"
-    },
-    "ds-free-schedule-demo": {
-      "path": "examples/ds-free-schedule-demo/",
-      "description": "26s synthetic product demo of scheduling a call in the DS Free account center, with a SoulX Pro Lugh narrator tile",
-      "template": "custom",
-      "stack": "remotion",
-      "complexity": "intermediate",
-      "contributor": "Digital Samba",
-      "created": "2026-10-21"
     }
   },
   "config": {

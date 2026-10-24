@@ -33,7 +33,7 @@ Scan for available brands:
    Available brands:
 
      1. default — no clone profile
-     2. digital-samba — clone configured (assets/voice-reference.m4a)
+     2. my-brand — clone configured (assets/voice-reference.m4a)
 
    Which brand should this voice clone be saved to?
 ```

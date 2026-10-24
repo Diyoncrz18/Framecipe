@@ -9,7 +9,7 @@
  *   npx ts-node lib/generate-brand-ts.ts <brand-name> <output-path>
  *
  * Example:
- *   npx ts-node lib/generate-brand-ts.ts digital-samba projects/my-video/src/config/brand.ts
+ *   npx ts-node lib/generate-brand-ts.ts default projects/my-video/src/config/brand.ts
  */
 
 import * as fs from 'fs';

@@ -1,1 +1,0 @@
-Scheduling a call in Digital Samba takes seconds.

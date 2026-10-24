@@ -305,7 +305,7 @@ Examples:
   uv run tools/cutdown.py --input out/video.mp4 --platform shorts
   uv run tools/cutdown.py --input out/video.mp4 --format 9:16 --format 1:1 --start 1:05 --end 1:50
   uv run tools/cutdown.py --input out/video.mp4 --mode crop --segment 0:04-0:11 --segment 0:42-0:58@0.25
-  uv run tools/cutdown.py --input out/video.mp4 --mode pad --brand digital-samba
+  uv run tools/cutdown.py --input out/video.mp4 --mode pad --brand default
 
 Platforms (default format, short-form length limit):
   shorts 9:16 / 3 min    reels 9:16 / 3 min    tiktok 9:16 / 10 min

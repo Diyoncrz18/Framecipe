@@ -1,9 +1,9 @@
 import type { Theme } from '../../../../lib/theme';
 
-export const brandName = 'digital-samba-ai-engineering';
+export const brandName = 'ai-engineering-review';
 
 export const brand = {
-  name: 'Digital Samba · AI Engineering',
+  name: 'AI Engineering Review',
   colors: {
     primary: '#ea580c',
     primaryLight: '#fb923c',

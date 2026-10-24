@@ -261,12 +261,12 @@ Example projects showcase real-world usage. They include configs, scripts, and d
 ```
 Found in projects/:
 
-  1. digital-samba-skill-demo
-     Marketing video for DS Claude Code skill
+  1. product-launch-teaser
+     Marketing video for a product launch
      Template: product-demo style
 
-  2. sprint-review-cho-oyu
-     iOS sprint review for Digital Samba Mobile
+  2. mobile-sprint-review
+     iOS sprint review for a mobile team
      Template: sprint-review
 
 Which project would you like to share as an example?
@@ -291,7 +291,7 @@ Leave blank to contribute anonymously.
 ### Step 2: Prepare for Sharing
 
 ```
-Preparing: digital-samba-skill-demo
+Preparing: product-launch-teaser
 
 I'll copy to examples/ and remove large media files.
 The following will be INCLUDED:

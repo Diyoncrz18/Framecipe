@@ -38,7 +38,7 @@ Examples:
   uv run tools/ideogram4.py --prompt "Title card: 'AI ENGINEERING REVIEW' bold white on dark" --output title.png
 
   # Inject brand palette into a JSON caption's style_description.color_palette
-  uv run tools/ideogram4.py --json caption.json --brand digital-samba --output cta.png
+  uv run tools/ideogram4.py --json caption.json --brand default --output cta.png
 
   # Quality tier + resolution
   uv run tools/ideogram4.py --json caption.json --speed QUALITY --resolution 2048x2048 --output slide.png
@@ -357,7 +357,7 @@ Examples:
   %(prog)s --json caption.json --output title.png
   cat caption.json | %(prog)s --json - --output title.png
   %(prog)s --prompt "Title card: 'SHIP FASTER' bold" --output thumb.png
-  %(prog)s --json caption.json --brand digital-samba --speed QUALITY --output cta.png
+  %(prog)s --json caption.json --brand default --speed QUALITY --output cta.png
   %(prog)s --model 4.5 --json caption.json --resolution 1440x2560 --output card.png
 
 Authoring captions: see the `ideogram4` skill (.claude/skills/ideogram4/). The --json path

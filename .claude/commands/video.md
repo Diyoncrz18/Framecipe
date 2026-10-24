@@ -183,7 +183,7 @@ List available brands from `brands/` directory:
 Which brand?
 
   1. default - #3B82F6 (blue)
-  2. digital-samba - #FF6B00 (orange)
+  2. my-brand - #FF6B00 (orange)
   3. Create new brand → /brand
 ```
 

@@ -68,7 +68,7 @@ When creating a new project with `/video`, you'll be prompted to select a brand:
 Which brand?
 
   1. default - #3B82F6 (blue)
-  2. digital-samba - #3771e0 (blue)
+  2. my-brand - #3771e0 (blue)
   3. my-company - #your-color
   4. Create new brand → /brand
 ```

@@ -6,7 +6,7 @@ Thank you to everyone who has contributed to Framecipe!
 
 | Organization | Website | Contributions |
 |--------------|---------|---------------|
-| Digital Samba | — | Example projects, initial development |
+| Digital Samba | — | Initial development |
 
 ## Individuals
 

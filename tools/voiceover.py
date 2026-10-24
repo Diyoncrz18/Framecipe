@@ -307,7 +307,7 @@ Examples:
     parser.add_argument(
         "--brand",
         type=str,
-        help="Brand name to load voice config from (e.g., 'default', 'digital-samba')",
+        help="Brand name to load voice config from (e.g., 'default', 'my-brand')",
     )
 
     # Common options

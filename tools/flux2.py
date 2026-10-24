@@ -24,7 +24,7 @@ Examples:
   # Scene presets for video production
   uv run tools/flux2.py --preset title-bg
   uv run tools/flux2.py --preset problem --prompt "legacy API migration"
-  uv run tools/flux2.py --preset cta --brand digital-samba
+  uv run tools/flux2.py --preset cta --brand default
 
   # With custom size and seed
   uv run tools/flux2.py --prompt "A cat in a spacesuit" --width 1280 --height 720 --seed 42
@@ -288,7 +288,7 @@ def list_presets():
     print("Usage:")
     print("  flux2.py --preset title-bg")
     print("  flux2.py --preset problem --prompt 'legacy API migration'")
-    print("  flux2.py --preset cta --brand digital-samba")
+    print("  flux2.py --preset cta --brand default")
     print()
 
 
@@ -834,7 +834,7 @@ Examples:
   %(prog)s --prompt "A sunset over mountains"
   %(prog)s --preset title-bg
   %(prog)s --preset problem --prompt "legacy API migration"
-  %(prog)s --preset cta --brand digital-samba
+  %(prog)s --preset cta --brand default
   %(prog)s --input photo.jpg --prompt "Add a party hat"
   %(prog)s --list-presets
   %(prog)s --setup

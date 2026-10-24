@@ -34,7 +34,7 @@ Available brands:
      Voice: configured
      Logo: ✅
 
-  2. **digital-samba**
+  2. **my-brand**
      Primary: #FF6B00 (orange)
      Voice: configured
      Logo: ✅
@@ -261,7 +261,7 @@ See docs/creating-brands.md for more details.
 When editing an existing brand:
 
 ```
-Editing: digital-samba
+Editing: my-brand
 
 What would you like to change?
 
@@ -282,7 +282,7 @@ Load current config, apply changes, write back.
 When viewing a brand:
 
 ```
-Brand: digital-samba
+Brand: my-brand
 
 Colors:
   Primary: #FF6B00

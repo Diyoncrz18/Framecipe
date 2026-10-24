@@ -109,8 +109,8 @@ import { AnimatedBackground, SlideTransition, Label } from '../../../../lib/comp
 keyframe path, click ripples) drive product screens rebuilt as static React from the app's source, so nothing is
 screen-recorded. Coordinates are canvas pixels (1440x810 by default) and every click is a frame number. For product
 walkthroughs and release-notes videos, prefer this to a Playwright recording when the app's source is readable. The
-method and its gotchas are in `.claude/skills/synthetic-ui-demo/`. The reference builds are
-`examples/ds-free-schedule-demo` and `examples/ds-release-649`, and their screen kits stay in the examples.
+method and its gotchas are in `.claude/skills/synthetic-ui-demo/`. Product screen kits stay in the
+video project, not in `lib/`.
 
 ## Python Tools
 
@@ -287,7 +287,7 @@ The toolkit has **two** text-to-image generators. They barely overlap — the de
 # FLUX.2 Klein — text-FREE backgrounds + image editing (self-hosted, free)
 #   klein-4B by default (Apache-2.0). FLUX2_MODEL=klein-9b at Modal deploy time opts into
 #   klein-9B (FLUX Non-Commercial, outputs need review) -- see docs/modal-setup.md
-uv run tools/flux2.py --preset title-bg --brand digital-samba   # background for Remotion text overlay
+uv run tools/flux2.py --preset title-bg --brand default   # background for Remotion text overlay
 uv run tools/flux2.py --prompt "Abstract tech background, no text"
 
 # Ideogram 4 — legible IN-IMAGE text + exact color/layout (hosted API, ~$0.03-0.10/img, commercial-OK)
@@ -358,7 +358,7 @@ uv run tools/music_gen.py --no-thinking --prompt "Quick draft" --duration 30 --o
 # Scene presets for video production
 uv run tools/music_gen.py --preset corporate-bg --duration 60 --output bg.mp3
 uv run tools/music_gen.py --preset tension --duration 20 --output problem.mp3
-uv run tools/music_gen.py --preset cta --brand digital-samba --output cta.mp3
+uv run tools/music_gen.py --preset cta --brand default --output cta.mp3
 
 # Song with vocals and lyrics (use structure tags for sections)
 uv run tools/music_gen.py \
