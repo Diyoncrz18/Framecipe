@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
+// No cacheComponents/partialPrefetching: every page reads the filesystem per request (see `dynamic` in app/layout.tsx).
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
   turbopack: {
     rules: {
       "*.css": {
