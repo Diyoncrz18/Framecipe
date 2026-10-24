@@ -198,10 +198,10 @@ export function waitRun(root, reason) {
 }
 
 // Ends the active run as failed. Leaves the project's files alone, node_modules included: a retry continues from them.
-function failActive(root, run, message, deps) {
+function failActive(root, run, message, deps, stage = run.stage) {
   const iso = deps.now().toISOString();
   closeOpenStages(run, iso);
-  writeRun(root, { ...run, status: 'failed', waitReason: null, error: { stage: run.stage, message }, endedAt: iso });
+  writeRun(root, { ...run, status: 'failed', waitReason: null, error: { stage, message }, endedAt: iso });
   clearActiveRun(root);
 }
 
@@ -292,8 +292,8 @@ export function finishRun(root, deps = defaultDeps) {
   const { run, proj } = activeProject(root);
   const file = `out/${run.runId}.mp4`;
   const abs = resolveInside(root, 'projects', run.project, 'out', `${run.runId}.mp4`);
-  const fail = (message) => {
-    failActive(root, run, message, deps);
+  const fail = (message, stage) => {
+    failActive(root, run, message, deps, stage);
     return { status: 'failed', output: null, warnings: [], error: message };
   };
 
@@ -304,6 +304,9 @@ export function finishRun(root, deps = defaultDeps) {
   try { probed = deps.probe(proj, abs); } catch (e) { return fail(`Video tidak bisa dibaca: ${e.message}`); }
   const { durationSeconds, width, height, fps, sizeBytes } = probed;
   if (!(durationSeconds > 0)) return fail('Durasi video 0 detik.');
+  // ffprobe output is not trusted: a missing or zero size would write a success run.json that runSchema rejects ("Data rusak").
+  const badFields = Object.entries({ width, height, fps }).filter(([, v]) => !(Number.isFinite(v) && v > 0)).map(([k]) => k);
+  if (badFields.length) return fail(`Hasil pembacaan video tidak valid: ${badFields.join(', ')} harus berupa angka positif.`, 'render');
 
   const d = comma(durationSeconds.toFixed(1));
   const warnings = [];
