@@ -3,12 +3,7 @@ import { randomBytes } from 'node:crypto';
 
 const pad2 = (n) => String(n).padStart(2, '0');
 
-// Cut after collapsing, then drop the dash the cut may leave. The cleaned string is plain ASCII, so a cut never splits a character.
-export function slugify(text) {
-  const slug = text.toLowerCase().normalize('NFKD').replace(/\p{M}/gu, '')
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-/, '').slice(0, 48).replace(/-$/, '');
-  return slug || 'video';
-}
+export { slugify } from './slug.mjs';
 
 // The suffix is added after slugify's 48-char cut, so the result can be a few chars longer.
 export function uniqueSlug(base, taken) {
