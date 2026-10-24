@@ -31,3 +31,45 @@ export function durationSegments(scenes) {
   const total = secs.reduce((a, b) => a + b, 0);
   return scenes.map((s, i) => ({ id: s.id, label: s.label, seconds: secs[i], percent: total ? Math.round((secs[i] / total) * 1000) / 10 : 0 }));
 }
+
+const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const str = (v) => (typeof v === 'string' ? v : '');
+const optStr = (v) => (typeof v === 'string' ? v : undefined);
+const strings = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []);
+const objects = (v) => (Array.isArray(v) ? v.filter(isObj) : []);
+const finite = (v, empty) => (typeof v === 'number' && Number.isFinite(v) ? v : empty); // "" = a number field the user must fill in
+const flag = (v) => ({ enabled: v?.enabled === true });
+
+// A hand-edited flow.json can parse yet have wrong types ("rules": "x", "label": null, "skills": {}). The editor must still open it
+// (NFR-07), so every field is coerced to the type the form needs: anything unusable becomes empty, and saving reports what is missing.
+// Only the fields of the flow schema come back; version and updatedAt are set by saveFlow.
+export function coerceDraft(raw) {
+  const f = isObj(raw) ? raw : {};
+  const output = isObj(f.output) ? f.output : {};
+  const style = isObj(f.style) ? f.style : {};
+  const audio = isObj(f.audio) ? f.audio : {};
+  const voice = isObj(audio.voiceover) ? audio.voiceover : {};
+  const music = isObj(audio.music) ? audio.music : {};
+  return {
+    id: str(f.id), name: str(f.name), description: optStr(f.description), template: str(f.template), brand: str(f.brand),
+    output: {
+      aspectRatio: str(output.aspectRatio), width: finite(output.width, ''), height: finite(output.height, ''), fps: finite(output.fps, ''),
+      targetDurationSeconds: finite(output.targetDurationSeconds, ''),
+    },
+    language: str(f.language),
+    style: { tone: optStr(style.tone), audience: optStr(style.audience), rules: strings(style.rules) },
+    scenes: objects(f.scenes).map((s) => ({
+      id: str(s.id), label: str(s.label), goal: str(s.goal), durationSeconds: finite(s.durationSeconds, ''), rules: strings(s.rules),
+      narration: s.narration === true, visualHint: optStr(s.visualHint), transitionOut: optStr(s.transitionOut),
+    })),
+    audio: {
+      voiceover: { ...flag(voice), provider: optStr(voice.provider), voice: optStr(voice.voice) },
+      music: { ...flag(music), preset: optStr(music.preset), prompt: optStr(music.prompt) },
+      captions: flag(audio.captions),
+    },
+    references: objects(f.references).map((r) => ({ kind: str(r.kind), id: optStr(r.id), path: optStr(r.path), url: optStr(r.url), note: optStr(r.note) })),
+    skills: strings(f.skills),
+    approval: f.approval === 'script-review' ? 'script-review' : 'auto',
+    notes: optStr(f.notes),
+  };
+}

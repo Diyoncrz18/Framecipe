@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, Trash2 } from "lucide-react";
-import { useId, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, NativeSelect } from "./field";
@@ -23,6 +23,12 @@ export function ReferencesField({ references, options, onChange }: { references:
   const [kind, setKind] = useState("example");
   const [value, setValue] = useState(""); // an id from the catalog, or the URL of a link
   const [note, setNote] = useState("");
+  // Element to focus after the next render, so deleting a reference does not drop the keyboard user at the top of the page.
+  const focusId = useRef<string | null>(null);
+  useEffect(() => {
+    if (focusId.current) document.getElementById(focusId.current)?.focus();
+    focusId.current = null;
+  }, [references]);
   const isLink = kind === "link";
   const ids = options[kind as keyof typeof options] ?? [];
 
@@ -33,6 +39,12 @@ export function ReferencesField({ references, options, onChange }: { references:
     if (!references.some((r) => r.kind === kind && (r.id ?? r.url) === v)) onChange([...references, { kind, ...target, ...(note.trim() && { note: note.trim() }) }]);
     setValue("");
     setNote("");
+  }
+
+  function remove(i: number) {
+    // The Hapus button that takes the removed one's place: the next item's, or the previous one's after the last; the add form when none is left.
+    focusId.current = references.length > 1 ? `${uid}-remove-${Math.min(i, references.length - 2)}` : `${uid}-kind`;
+    onChange(references.filter((_, j) => j !== i));
   }
 
   // Enter in these two inputs adds the reference, not the whole flow form.
@@ -56,7 +68,7 @@ export function ReferencesField({ references, options, onChange }: { references:
                   {KIND_LABELS[r.kind] ?? r.kind}: <code className="text-xs">{r.id ?? r.path ?? r.url}</code>
                   {r.note && <span className="text-muted-foreground"> ({r.note})</span>}
                 </span>
-                <Button type="button" variant="outline" size="sm" aria-label={`Hapus referensi ${what}`} onClick={() => onChange(references.filter((_, j) => j !== i))}>
+                <Button id={`${uid}-remove-${i}`} type="button" variant="outline" size="sm" aria-label={`Hapus referensi ${what}`} onClick={() => remove(i)}>
                   <Trash2 aria-hidden="true" />
                   Hapus
                 </Button>

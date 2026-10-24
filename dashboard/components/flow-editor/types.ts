@@ -19,7 +19,7 @@ export type FlowDraft = {
   description?: string;
   template: string;
   brand: string;
-  output: { aspectRatio: string; width: number; height: number; fps: number; targetDurationSeconds: number | "" };
+  output: { aspectRatio: string; width: number | ""; height: number | ""; fps: number | ""; targetDurationSeconds: number | "" };
   language: string;
   style?: { tone?: string; audience?: string; rules?: string[] };
   scenes: Scene[];

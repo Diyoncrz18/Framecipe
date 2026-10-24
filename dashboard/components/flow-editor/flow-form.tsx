@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MUSIC_KEYS, VOICE_PROVIDER_KEYS } from "@/core/flow-form.mjs";
+import { MUSIC_KEYS, VOICE_PROVIDER_KEYS, coerceDraft } from "@/core/flow-form.mjs";
 import { slugify } from "@/core/slug.mjs";
 import { DurationBar } from "./duration-bar";
 import { Field, NativeSelect } from "./field";
@@ -18,9 +18,6 @@ import { ReferencesField } from "./references-field";
 import { SceneList } from "./scene-list";
 import { SkillsField } from "./skills-field";
 import type { EditorData, FlowDraft, Scene } from "./types";
-
-// What a page hands over: a flow.json (possibly hand-edited, so sections can be missing) or defaultFlow().
-export type InitialFlow = Omit<FlowDraft, "scenes"> & { scenes: Omit<Scene, "key">[] };
 
 const PROVIDERS = [
   { value: "", label: "Pilih provider" },
@@ -31,19 +28,12 @@ const PROVIDERS = [
 const LANGUAGES = [{ value: "id", label: "Indonesia" }, { value: "en", label: "Inggris" }];
 const APPROVALS = [{ value: "auto", label: "Otomatis" }, { value: "script-review", label: "Review naskah dulu" }];
 
-// Defaults for what a hand-edited flow may lack; saving reports what is still missing.
-const BASE = { id: "", name: "", template: "", brand: "", language: "", approval: "auto" as const, skills: [] as string[] };
-const SCENE_BASE = { id: "", label: "", goal: "", durationSeconds: "" as number | "", rules: [] as string[], narration: false };
-const on = <T extends { enabled?: boolean }>(v?: T) => ({ ...v, enabled: !!v?.enabled });
-
-function toDraft(f: InitialFlow): FlowDraft {
-  return {
-    ...BASE, ...f,
-    output: { ...f.output, targetDurationSeconds: f.output?.targetDurationSeconds ?? "" },
-    audio: { voiceover: on(f.audio?.voiceover), music: on(f.audio?.music), captions: on(f.audio?.captions) },
-    references: f.references ?? [],
-    scenes: (Array.isArray(f.scenes) ? f.scenes : []).map((s, i) => ({ ...SCENE_BASE, ...s, key: `loaded-${i}` })), // by position, so the server render and hydration agree
-  };
+// `raw` is a flow.json, possibly hand-edited into wrong types (coerceDraft makes it fit the form), or defaultFlow().
+// Scene keys go by position, so the server render and hydration give a scene the same key. A flow.json without an id is saved into
+// the folder it was opened from.
+function toDraft(raw: unknown, folderId?: string): FlowDraft {
+  const d = coerceDraft(raw) as Omit<FlowDraft, "scenes"> & { scenes: Omit<Scene, "key">[] };
+  return { ...d, id: d.id || folderId || "", scenes: d.scenes.map((s, i) => ({ ...s, key: `loaded-${i}` })) };
 }
 
 const trimmed = (s?: string) => s?.trim() || undefined; // undefined keys are dropped by JSON.stringify
@@ -84,10 +74,10 @@ function KeyStatus({ name, filled }: { name: string; filled: boolean }) {
   );
 }
 
-export function FlowForm({ mode, initial, version = 0, initialErrors = [], data }: { mode: "create" | "update"; initial: InitialFlow; version?: number; initialErrors?: string[]; data: EditorData }) {
+export function FlowForm({ mode, initial, folderId, version = 0, initialErrors = [], data }: { mode: "create" | "update"; initial: unknown; folderId?: string; version?: number; initialErrors?: string[]; data: EditorData }) {
   const router = useRouter();
   const uid = useId();
-  const [flow, setFlow] = useState(() => toDraft(initial));
+  const [flow, setFlow] = useState(() => toDraft(initial, folderId));
   const [customId, setCustomId] = useState(false); // the user typed an id: stop deriving it from the name
   const [errors, setErrors] = useState(initialErrors);
   const [saved, setSaved] = useState<number | null>(null);
@@ -110,6 +100,8 @@ export function FlowForm({ mode, initial, version = 0, initialErrors = [], data 
   const cloudKeys = [...(vo.enabled && vo.provider ? (VOICE_PROVIDER_KEYS as Record<string, string[]>)[vo.provider] ?? [] : []), ...(music.enabled ? MUSIC_KEYS : [])];
   const id = (name: string) => `${uid}-${name}`;
   const num = (v: string) => (v === "" ? "" : Number(v));
+  // The id in flow.json names another folder: saving would write flows/<that id>, over a flow that is not the one being edited.
+  const mismatch = mode === "update" && folderId !== undefined && flow.id !== folderId;
 
   function pickTemplate(templateId: string) {
     const t = data.templates.find((x) => x.id === templateId);
@@ -118,6 +110,7 @@ export function FlowForm({ mode, initial, version = 0, initialErrors = [], data 
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (mismatch) return;
     setPending(true);
     setSaved(null);
     try {
@@ -286,7 +279,7 @@ export function FlowForm({ mode, initial, version = 0, initialErrors = [], data 
       </Section>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={pending}>Simpan</Button>
+        <Button type="submit" disabled={pending || mismatch} aria-describedby={mismatch ? id("mismatch") : undefined}>Simpan</Button>
         <p role="status" className="flex items-center gap-1.5 text-sm text-green-800">
           {saved !== null && (
             <>
@@ -296,6 +289,12 @@ export function FlowForm({ mode, initial, version = 0, initialErrors = [], data 
           )}
         </p>
       </div>
+      {mismatch && (
+        <p id={id("mismatch")} className="flex max-w-prose items-start gap-2 text-sm text-destructive">
+          <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+          Simpan dinonaktifkan: ID di flow.json ({flow.id ? `"${flow.id}"` : "kosong"}) tidak sama dengan nama folder ({`"${folderId}"`}), jadi penyimpanan bisa menimpa alur lain. Perbaiki flow.json dengan editor teks, atau arsipkan alur ini.
+        </p>
+      )}
     </form>
   );
 }

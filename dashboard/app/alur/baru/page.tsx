@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FlowForm, type InitialFlow } from "@/components/flow-editor/flow-form";
+import { FlowForm } from "@/components/flow-editor/flow-form";
 import { defaultFlow } from "@/core/flow-form.mjs";
 import { loadEditorData } from "../editor-data";
 
@@ -16,7 +16,7 @@ export default function Page() {
         <h1 className="text-2xl font-semibold">Buat alur</h1>
       </div>
       {template ? (
-        <FlowForm mode="create" initial={defaultFlow(template.id, brand?.id ?? "", template) as InitialFlow} data={data} />
+        <FlowForm mode="create" initial={defaultFlow(template.id, brand?.id ?? "", template)} data={data} />
       ) : (
         <p role="alert" className="text-destructive">Belum ada template Remotion di folder templates/, jadi alur belum bisa dibuat.</p>
       )}
