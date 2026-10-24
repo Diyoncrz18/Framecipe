@@ -33,6 +33,10 @@ it('readJson membedakan hilang dan rusak', () => {
   expect(readJson(path.join(root, 'nope.json'))).toMatchObject({ ok: false, error: 'missing' });
   expect(readJson(f)).toMatchObject({ ok: false, error: 'corrupt' });
 });
+it('readJson menerima file JSON berawalan BOM UTF-8 (Notepad lama menyimpannya begitu)', () => {
+  const f = path.join(makeTempRoot(), 'bom.json'); fs.writeFileSync(f, '﻿{"a":1}');
+  expect(readJson(f)).toEqual({ ok: true, value: { a: 1 } });
+});
 it('readJsonLines melewati baris rusak', () => {
   const f = path.join(makeTempRoot(), 'e.jsonl');
   appendJsonLine(f, { n: 1 }); appendJsonLine(f, { n: 2 }); fs.appendFileSync(f, '{"n":3');
