@@ -209,6 +209,15 @@ it('notifikasi idle_prompt setelah berhenti tidak menutupi status berhenti, perm
   expect(status([['01:54:00', 'session-end', '', { detail: { reason: 'other' } }], IDLE]).shown).toBe('stopped');
   expect(status([['01:54:00', 'stop', '', { ok: false, detail: undefined }], IDLE]).shown).toBe('stopped');
 });
+// A permission prompt keeps a run alive past 15 minutes (JMB-05), so if Claude Code died at the prompt this is the only way out.
+it('markRunFailed: run yang menunggu izin boleh ditandai gagal, juga lewat dari 15 menit', () => {
+  const later = new Date('2026-10-24T03:00:00Z');
+  const { root, project, runId } = seedRun({ status: 'running', sessionId: 's1', active: true, events: { s1: [PERMISSION] } });
+  expect(listRuns(root, later)[0].displayStatus).toBe('waiting-permission');
+  markRunFailed(root, project, runId, 'Ditandai gagal.', later);
+  expect(readRun(root, project, runId).value).toMatchObject({ status: 'failed', error: { message: 'Ditandai gagal.' } });
+  expect(readActiveRun(root)).toBeNull();
+});
 it('tahap saat ini gagal pada run yang berakhir tanpa sukses, sama untuk yang sudah dan belum disapu', () => {
   const states = (o) => { const r = seedRun({ stage: 'render', stagesEntered: ['setup', 'render'], ...o }); return readRunDetail(r.root, r.project, r.runId, NOW).stages.map(s => s.state); };
   const failed = ['done', 'skipped', 'skipped', 'skipped', 'skipped', 'skipped', 'failed', 'pending', 'pending'];

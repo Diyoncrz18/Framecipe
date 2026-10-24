@@ -156,13 +156,15 @@ export function readRunDetail(root, project, runId, now = new Date()) {
   };
 }
 
-// Only a run nobody is working on (abandoned) or one Claude stopped (stopped) can be marked failed from the dashboard.
+// Only a run nobody is working on (abandoned), one Claude stopped (stopped) or one stuck at a permission prompt
+// (waiting-permission: it never goes stale, so a Claude Code that died at the prompt would block every new start)
+// can be marked failed from the dashboard.
 // An already-set endedAt stays: it is when the run really ended, and the event window must not grow past it.
 export function markRunFailed(root, project, runId, reason, now) {
   const run = loadRun(root, project, runId);
   if (!run) throw new Error(`Run ${runId} tidak ditemukan atau datanya rusak.`);
   const status = effectiveStatus(root, run, now);
-  if (!['abandoned', 'stopped'].includes(status)) throw new Error(`Run ini tidak bisa ditandai gagal karena statusnya ${STATUS_LABELS[status]}.`);
+  if (!['abandoned', 'stopped', 'waiting-permission'].includes(status)) throw new Error(`Run ini tidak bisa ditandai gagal karena statusnya ${STATUS_LABELS[status]}.`);
   const iso = now.toISOString();
   // Written to the folder the run was found in, not to run.project: the field can be hand-edited.
   writeJsonAtomic(runPaths(root, project, runId).runFile, {

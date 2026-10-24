@@ -47,7 +47,7 @@ Setiap proyek memakai sekitar 690 MB selama proses berjalan, dan folder `node_mo
 
 - **Berjalan**: Claude sedang mengerjakan video.
 - **Menunggu Anda**: Claude menunggu balasan Anda di chat, misalnya persetujuan naskah.
-- **Menunggu izin Anda**: Claude tertahan oleh prompt izin di Claude Code. Jawab prompt itu di sana.
+- **Menunggu izin Anda**: Claude tertahan oleh prompt izin di Claude Code. Jawab prompt itu di sana. Bila sesi Claude Code itu sudah ditutup, tandai run gagal dari halaman Eksekusi.
 - **Claude berhenti**: Claude sudah berhenti membalas, tetapi run belum ditutup dengan selesai atau gagal. Lanjutkan lewat chat.
 - **Terhenti**: tidak ada aktivitas lebih dari 15 menit, biasanya karena sesi Claude ditutup. Lanjutkan dengan `/buat-video perbaiki=<runId>`, atau tandai gagal.
 - **Gagal**: ada langkah yang tidak bisa diperbaiki. Alasannya tampil di detail eksekusi.
