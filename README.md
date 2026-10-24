@@ -1,411 +1,323 @@
-# claude-code-video-toolkit
+# Framecipe
 
-<p align="center">
-  <img src="assets/banner/toolkit-banner.gif" alt="claude-code-video-toolkit — NARRATE ▸ SCORE ▸ GENERATE ▸ COMPOSE ▸ RENDER" width="960" />
-</p>
+**AI video editing and motion-graphics studio, driven by reusable recipes.**
 
-[![GitHub release](https://img.shields.io/github/v/release/digitalsamba/claude-code-video-toolkit)](https://github.com/digitalsamba/claude-code-video-toolkit/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![GitHub stars](https://img.shields.io/github/stars/digitalsamba/claude-code-video-toolkit?style=social)](https://github.com/digitalsamba/claude-code-video-toolkit/stargazers)
+Framecipe turns a written recipe into a finished video. You define the recipe once in a local dashboard: the template, brand, scene structure, style rules and design references. Then you ask [Claude Code](https://claude.com/claude-code) for a video on any topic. Claude writes the script, composes the scenes in [Remotion](https://www.remotion.dev/), renders the MP4, checks the frames, and files the result in your gallery. The dashboard shows every stage while it happens.
 
-Tell [Claude Code](https://claude.ai/code) what video you want — it writes the script, generates the voiceover, music, and visuals, and renders the MP4. An AI-native video production workspace: the skills, commands, templates, and tools your AI agent needs to take a video from concept to final render, on open-source models that cost cents (voiceover ~$0.01, AI video clips ~$0.23).
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node.js ≥ 20.9](https://img.shields.io/badge/node-%E2%89%A5%2020.9-339933?logo=node.js&logoColor=white)
+![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=next.js)
+![Remotion 4](https://img.shields.io/badge/Remotion-4-0B84F3)
+![Runs locally](https://img.shields.io/badge/runs-locally-555555)
 
-## See What It Makes
-
-Every frame below was generated in this workspace — click to watch.
-
-| | |
-|:--:|:--:|
-| <a href="https://demos.digitalsamba.com/video/ds-release-649.mp4"><img src="assets/readme-thumbs/ds-release-649.jpg" width="430" alt="Release-notes video with product UI rebuilt from source"></a> | <a href="https://demos.digitalsamba.com/video/ds-free-schedule-demo.mp4"><img src="assets/readme-thumbs/ds-free-schedule-demo.jpg" width="430" alt="Product demo with an AI narrator tile"></a> |
-| **Release-notes video**<br>product UI rebuilt from source,<br>no screen recording | **Product demo**<br>scripted cursor and camera,<br>AI narrator tile |
-
-| | | |
-|:--:|:--:|:--:|
-| <a href="https://demos.digitalsamba.com/video/q2-townhall-longarm-ad.mp4"><img src="assets/readme-thumbs/q2-townhall-longarm-ad.jpg" height="280" alt="Super Bowl-style launch ad"></a> | <a href="https://demos.digitalsamba.com/video/hallucinations_short.mp4"><img src="assets/readme-thumbs/hallucinations-short.jpg" height="280" alt="AI hallucinations explainer short"></a> | <a href="https://demos.digitalsamba.com/video/short-blue-sky.mp4"><img src="assets/readme-thumbs/sky-blue-short.jpg" height="280" alt="Why is the sky blue? short"></a> |
-| **Super Bowl-style launch ad**<br>LTX-2 animated cameo,<br>dramatic AI announcer | **AI hallucinations explainer**<br>9:16 short — Ideogram 4 cards,<br>cloned voice, burned captions | **"Why is the sky blue?"**<br>52s vertical short,<br>~$0.80 in generation |
-
-More in the [showcase table](#templates) below.
-
-## Quick Start
-
-```bash
-git clone https://github.com/digitalsamba/claude-code-video-toolkit.git
-cd claude-code-video-toolkit
-uv sync   # Optional: AI voiceover, image gen, music, moviepy examples
-claude    # Open Claude Code in the toolkit
-```
-
-> Python dependencies are managed with [uv](https://docs.astral.sh/uv/) — `uv sync` creates `.venv/` and installs everything from the lockfile in seconds. No uv yet? `curl -LsSf https://astral.sh/uv/install.sh | sh` (macOS/Linux) or `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"` (Windows).
-
-Then in Claude Code:
-
-```
-/setup                    # Configure cloud GPU, storage, voice (~5 min, mostly free)
-/video                    # Create your first video
-```
-
-**That's it.** `/setup` walks you through everything interactively — cloud GPU provider, file transfer, voice config. `/video` creates a project from a template and guides you through the whole workflow.
-
-**What's free:** The toolkit leans heavily on open-source AI models — voiceovers (Qwen3-TTS), image generation (FLUX.2), music (ACE-Step), and more. You deploy them to your own cloud GPU account and run them at cost. Cloudflare R2 has a generous free tier (10GB, zero egress), and Modal gives $30/month free compute on the Starter plan — more than enough for a few 5-minute videos a month.
-
-**Requirements:** [Node.js](https://nodejs.org/) 18+ and [Claude Code](https://docs.anthropic.com/en/docs/claude-code). [uv](https://docs.astral.sh/uv/) recommended for the AI tools (it installs Python 3.10+ for you). FFmpeg optional.
-
-> **Want to skip setup and just render something?**
-> ```bash
-> cd examples/hello-world && npm install && npm run render
-> ```
-> No API keys needed — outputs an MP4 immediately.
+![Framecipe home: create a video, check system health, and see the latest renders](docs/images/framecipe-home.png)
 
 ---
 
-## A Note from the Author *(not AI-generated)*
+## Contents
 
-> I've spent months painstakingly putting this toolkit together and plan to keep iterating on it. AI makes things easier, but hard work still has huge value. Every video I create is a chance for improvement — every skill, template, tool, and workflow here has been refined through that cycle. It would be wonderful if others wanted to get involved with that: use it, refine it, and feed back into the repo via an issue or PR what you learn.
->
-> My own use case is fairly specific: creating sprint review videos for the AI mobile development arm of [Digital Samba](https://www.digitalsamba.com/). But the idea behind this project is a reusable toolkit for using Claude Code to autonomously generate any kind of "explainer" style video — product demos, walkthroughs, presentations, whatever you need. Autonomous video creation is a lofty ideal for such a subjective field, but we can try :)
->
-> What makes this work is that Claude Code is fantastically resourceful and flexible — give it the framing and tooling that this toolkit provides and it will adapt it to create templates and videos based on your prompting. The skills, templates, and tools here are building blocks. Claude Code is the builder. You are the director, editor, and designer.
->
-> **If you're getting started**, run `/setup` then `/video` and let Claude Code guide you. Or start with `/template` to create a template for your own use case.
->
-> **Cloud GPU** — I recommend [Modal](https://modal.com/) for running the toolkit's AI tools. The Starter plan gives you $30/month free compute, which is more than enough. [RunPod](https://runpod.io/) is also supported as an alternative. Run `/setup` to deploy the tools you need.
->
-> My motto: **Be brave. Experiment.** And please share any videos you create or ideas you have back with the project — it helps me keep improving this toolkit for everyone.
+- [Why Framecipe](#why-framecipe)
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Requirements](#requirements)
+- [Getting started](#getting-started)
+- [Making videos](#making-videos)
+- [Dashboard tour](#dashboard-tour)
+- [The production pipeline](#the-production-pipeline)
+- [AI and motion-graphics toolkit](#ai-and-motion-graphics-toolkit)
+- [Project layout](#project-layout)
+- [Security and privacy](#security-and-privacy)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+- [Roadmap](#roadmap)
+- [Credits and license](#credits-and-license)
+
+## Why Framecipe
+
+Most AI video tools give you a different result every time you ask. Framecipe uses recipes so the output stays consistent.
+
+- **A recipe is a repeatable production spec.** A recipe fixes the format, look and pacing of a video series. Every new topic follows the same structure: hook, explanation, facts, call to action, or whatever you design.
+- **Claude Code does the production work.** It writes the script, edits the Remotion composition, renders, and reviews its own frames. It works inside guard rails that the recipe and the `/buat-video` command define.
+- **Nothing is a black box.** Every stage, skill, command and changed file is recorded and shown live in the dashboard.
+- **Rendering stays on your machine.** Remotion renders locally, and the video files, recipes and projects never leave your computer.
 
 ## Features
 
-### Skills
+| | |
+|---|---|
+| **Recipe editor** | Pick a template and brand, set the target duration, and lay out scenes with goals, durations, rules, visual hints and transitions. Attach design references and skills, and choose between auto-run and script review before render. |
+| **Requests** | Choose a recipe, enter a topic and notes, and get a ready-to-paste `/buat-video` prompt for Claude Code. |
+| **Live execution view** | See the current stage, time spent per stage, the skills Claude loaded, the files it changed, the commands it ran, the render time and the review frames. Pages refresh every 2 seconds. |
+| **Video gallery** | Browse every finished video with thumbnails taken from the review frames, filter by recipe or status, and play or download the MP4. |
+| **Design references** | Look through the templates, brands (colors and logos), example projects, transitions and components that you can attach to a recipe. |
+| **Skills and tools catalog** | See every Claude skill, command and Python tool in the workspace, how often each was used, when it was last used, and which recipes list it. |
+| **Health and settings** | Check that Node, npm, uv and Claude Code are installed and that the hooks and command are in place. API keys are reported only as set or unset. Their values are never shown. |
+| **Built-in safeguards** | Only one run is active at a time. A run with no activity for 15 minutes is detected as stalled. A video is only marked successful after its file is validated, so a failed render can never show up as a success. |
 
-Claude Code has deep knowledge in:
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/framecipe-recipe-editor.png" alt="Recipe editor with template, brand, output format and scene timeline"></td>
+    <td width="50%"><img src="docs/images/framecipe-gallery.png" alt="Video gallery filtered to successful renders"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Recipe editor</b>: template, brand, format and scene timeline</td>
+    <td align="center"><b>Gallery</b>: every finished video, filterable by recipe and status</td>
+  </tr>
+</table>
 
-| Skill | Description |
-|-------|-------------|
-| **remotion** | React-based video framework — compositions, animations, rendering |
-| **elevenlabs** | AI audio — text-to-speech, voice cloning, music, sound effects |
-| **ffmpeg** | Media processing — format conversion, compression, resizing |
-| **playwright-recording** | Browser automation — record demos as video |
-| **frontend-design** | Visual design refinement for distinctive, production-grade aesthetics |
-| **qwen-edit** | AI image editing — prompting patterns and best practices |
-| **ideogram4** | AI image generation with best-in-class in-image text — title cards, thumbnails, exact brand colors |
-| **acestep** | AI music generation — prompts, lyrics, scene presets, video integration |
-| **ltx2** | AI video generation — text-to-video, image-to-video clips, prompting guide |
-| **moviepy** | Python video composition — overlay text on LTX-2/SadTalker output, build.py-style projects |
-| **runpod** | Cloud GPU — setup, Docker images, endpoint management, costs |
+![Execution detail showing each pipeline stage with its status and duration](docs/images/framecipe-run-pipeline.png)
 
-> The always-current catalog of skills, commands, tools, and templates lives in [`_internal/toolkit-registry.json`](_internal/toolkit-registry.json).
+## How it works
 
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| `/setup` | First-time setup — cloud GPU, file transfer, voice, prerequisites |
-| `/video` | Video projects — list, resume, or create new |
-| `/scene-review` | Scene-by-scene review in Remotion Studio |
-| `/design` | Focused design refinement session for a scene |
-| `/brand` | Brand profiles — list, edit, or create new |
-| `/template` | List available templates or create new ones |
-| `/skills` | List installed skills or create new ones |
-| `/contribute` | Share improvements — issues, PRs, examples |
-| `/record-demo` | Record browser interactions with Playwright |
-| `/generate-voiceover` | Generate AI voiceover from a script |
-| `/redub` | Redub existing video with a different voice |
-| `/voice-clone` | Record, test, and save a cloned voice to a brand |
-| `/thumbnail` | Generate a YouTube thumbnail with Ideogram 4 (hook phrase + brand colours) |
-| `/publish` | Publish a finished video to YouTube (metadata auto-filled from `project.json`) |
-| `/versions` | Check dependency versions and toolkit updates |
-
-> **Note:** After creating or modifying commands/skills, restart Claude Code to load changes.
-
-### Templates
-
-Pre-built video structures in `templates/`:
-
-- **sprint-review** — Sprint review videos with demos, stats, and voiceover
-- **sprint-review-v2** — Composable scene-based sprint review with modular architecture
-- **product-demo** — Marketing videos with dark tech aesthetic, stats, CTA
-- **concept-explainer-short** — 9:16 vertical TikTok/Reels/Shorts explainers (Python/moviepy, no Remotion)
-
-See `examples/` for finished projects you can learn from (newest first — scroll down to watch the toolkit evolve in reverse):
-
-| Date | Demo | Description |
-|------|------|-------------|
-| 2026-10-21 | [ds-release-649](https://demos.digitalsamba.com/video/ds-release-649.mp4) | Release-notes video with no screen recording: three product UIs rebuilt from their source code, driven by a scripted cursor and camera, narrated by Lugh (`examples/ds-release-649`) |
-| 2026-10-21 | [ds-free-schedule-demo](https://demos.digitalsamba.com/video/ds-free-schedule-demo.mp4) | 26s synthetic product demo of scheduling a call, with a SoulX talking-head narrator tile (`examples/ds-free-schedule-demo`) |
-| 2026-06-09 | [hallucinations-short](https://demos.digitalsamba.com/video/hallucinations_short.mp4) | 3:41 vertical explainer on AI hallucinations — Ideogram 4 cards, LTX-2 b-roll, burned karaoke captions, Qwen3-TTS voice *clone* (reference sample from [Pixabay](https://pixabay.com/sound-effects/search/voice%20overs/)) |
-| 2026-06-09 | [sky-blue-short](https://demos.digitalsamba.com/video/short-blue-sky.mp4) | 52s "Why is the sky blue?" — concept-explainer-short template showcase (`examples/sky-blue-short`), stock Qwen3-TTS voice |
-| 2026-04-08 | [q2-townhall-stars](https://demos.digitalsamba.com/video/q2-townhall-stars.mp4) | GitHub star history time-lapse with animated chart and deadpan-to-excited commentary |
-| 2026-04-08 | [q2-townhall-longarm-ad](https://demos.digitalsamba.com/video/q2-townhall-longarm-ad.mp4) | Super Bowl-style launch ad with dramatic Qwen3-TTS announcer and LTX-2 animated Lugh cameo |
-| 2026-03-15 | [the-space-between](https://demos.digitalsamba.com/video/the-space-between.mp4) | AI-generated video essay — flux2 avatar, Qwen3-TTS voice, SadTalker animation |
-| 2026-02-23 | [cortina](https://demos.digitalsamba.com/video/sprint-review.mp4) | Mobile platforms sprint review |
-| 2026-01-25 | [schlumbergera](https://demos.digitalsamba.com/video/schlumbergera.mp4) | Android sprint review video |
-| 2026-01-22 | [ds-remote-mcp](https://demos.digitalsamba.com/video/ds-remote-mcp.mp4) | Remote MCP server demo *(the jazz background music is a joke)* |
-| 2025-12-10 | [digital-samba-skill-demo](https://demos.digitalsamba.com/video/digital-samba-skill-demo.mp4) | Product demo showcasing Claude Code skill |
-| 2025-12-05 | [sprint-review-cho-oyu](https://demos.digitalsamba.com/sprint-review-cho-oyu.mp4) | iOS sprint review with demos |
-
-### Scene Transitions
-
-The toolkit includes a transitions library for scene-to-scene effects:
-
-| Transition | Description |
-|------------|-------------|
-| `glitch()` | Digital distortion with RGB shift |
-| `rgbSplit()` | Chromatic aberration effect |
-| `zoomBlur()` | Radial motion blur |
-| `lightLeak()` | Cinematic lens flare |
-| `clockWipe()` | Radial sweep reveal |
-| `pixelate()` | Digital mosaic dissolution |
-| `checkerboard()` | Grid-based reveal (9 patterns) |
-
-Plus official Remotion transitions: `slide()`, `fade()`, `wipe()`, `flip()`
-
-Preview all transitions:
-```bash
-cd showcase/transitions && npm install && npm run studio
+```mermaid
+flowchart LR
+    R["Recipe<br/>flows/ID/flow.json"] --> Q["Request<br/>(dashboard)"]
+    Q -->|"/buat-video req=ID"| C["Claude Code<br/>(chat)"]
+    C -->|"run.mjs start · stage · render · finish"| P["Project<br/>projects/SLUG/"]
+    C -.->|"hooks: tools, skills, files"| E["Event log<br/>.dashboard/events/"]
+    P --> D["Dashboard<br/>Execution · Gallery"]
+    E --> D
 ```
 
-See [lib/transitions/README.md](lib/transitions/README.md) for full documentation.
+1. **Recipe.** You create or edit a recipe in the dashboard. It is saved as `flows/<id>/flow.json`.
+2. **Request.** On the home page you pick a recipe, enter a topic, and click **Buat prompt** ("create prompt"). The dashboard stores the request and gives you the prompt `/buat-video req=<id>`.
+3. **Production.** You paste that prompt into Claude Code, opened at the repository root. Claude follows the `/buat-video` command step by step. It drives every stage through one helper, `dashboard/bin/run.mjs`, and edits files only inside `projects/<slug>/`.
+4. **Observation.** Claude Code hooks (`dashboard/bin/hook.mjs`) record each tool call, skill load, file change and notification. The dashboard combines this log with the run's manifest to show live progress.
+5. **Result.** `finish` validates the MP4 (it must exist, have a non-zero duration and valid dimensions), records it, and frees disk space. The video appears in the gallery.
 
-### Brand Profiles
+The dashboard never starts Claude on its own. You start each video from the Claude Code chat, so you stay in control of every run.
 
-Define visual identity in `brands/`. When you create a project with `/video`, the brand's colors, fonts, and styling are automatically applied.
+## Requirements
 
-```
-brands/my-brand/
-├── brand.json    # Colors, fonts, typography
-├── voice.json    # ElevenLabs voice settings
-└── assets/       # Logo, backgrounds
-```
+| Requirement | Notes |
+|---|---|
+| **Node.js 20.9 or newer** | Developed and tested on Node 24. |
+| **Claude Code** | Signed in with a Claude subscription. The production work uses your Claude usage quota. |
+| **Chrome or Edge** | For viewing the dashboard. Rendering uses its own headless browser, downloaded once (about 270 MB) and shared by all projects. |
+| **Disk space** | About 700 MB per project while it renders. Each project's `node_modules` is removed automatically after a successful run. |
+| [uv](https://docs.astral.sh/uv/) *(optional)* | Only needed for the Python AI tools (voiceover, music, image and video generation). |
+| FFmpeg *(optional)* | Only needed for some of the toolkit's utility tools. |
 
-Included brands: `default`, `digital-samba`
+Framecipe is developed and tested on Windows 11, including paths that contain spaces. It is built on cross-platform tools.
 
-Create your own with `/brand`.
+## Getting started
 
-### Project Management System
-
-Video projects are tracked through a multi-session lifecycle:
-
-```
-planning → assets → review → audio → editing → rendering → complete
-```
-
-Each project has a `project.json` that tracks:
-- **Scenes** — What to show, asset status, visual types
-- **Audio** — Voiceover and music status
-- **Sessions** — Work history across Claude Code sessions
-- **Phase** — Current stage in the workflow
-
-The system automatically reconciles intent (what you planned) with reality (what files exist), and generates a `CLAUDE.md` per project for instant context when resuming.
-
-See [lib/project/README.md](lib/project/README.md) for schema details, scene status tracking, and filesystem reconciliation logic.
-
-### Python Tools
-
-Audio, video, and image tools in `tools/`:
+### 1. Install and start the dashboard
 
 ```bash
-# AI voiceover — ElevenLabs or self-hosted Qwen3-TTS (9 voices + cloning)
-uv run tools/voiceover.py --provider qwen3 --speaker Ryan --scene-dir public/audio/scenes --json
-
-# AI music (ACE-Step — free cloud API)
-uv run tools/music_gen.py --preset corporate-bg --duration 120 --output music.mp3
-
-# AI image generation (FLUX.2) and editing (Qwen-Image)
-uv run tools/flux2.py --preset title-bg --brand digital-samba --cloud modal
-uv run tools/image_edit.py --input photo.jpg --prompt "Add sunglasses" --cloud modal
-
-# AI video generation (LTX-2.3 — text-to-video, image-to-video)
-uv run tools/ltx2.py --prompt "A sunset over the ocean, cinematic" --cloud modal
-
-# Talking head from a portrait + audio (SoulX-FlashHead)
-uv run tools/soulx.py --image portrait.png --audio voiceover.mp3 --output talking.mp4
+cd dashboard
+npm install
+npm run dev
 ```
 
-<details>
-<summary><strong>All tools</strong> — sound effects, redub, upscaling, watermark removal, NotebookLM rebranding, in-image text…</summary>
+Open **http://127.0.0.1:3210**. For a production build, run `npm run build` and then `npm start`. It uses the same address.
+
+### 2. Open Claude Code at the repository root
 
 ```bash
-# Generate voiceover (ElevenLabs)
-uv run tools/voiceover.py --script script.md --output voiceover.mp3
-
-# Generate voiceover (Qwen3-TTS — self-hosted, cheaper alternative)
-uv run tools/voiceover.py --provider qwen3 --speaker Ryan --scene-dir public/audio/scenes --json
-uv run tools/qwen3_tts.py --text "Hello world" --tone warm --output hello.mp3
-
-# Generate background music (ElevenLabs)
-uv run tools/music.py --prompt "Upbeat corporate" --duration 120 --output music.mp3
-
-# Generate background music (ACE-Step — free cloud API, XL Turbo 4B model)
-uv run tools/music_gen.py --preset corporate-bg --duration 120 --output music.mp3
-uv run tools/music_gen.py --prompt "Dramatic cinematic" --duration 30 --bpm 90 --key "D Minor" --output reveal.mp3
-uv run tools/music_gen.py --prompt "Upbeat indie rock" --duration 60 --variations 4 --output intro.mp3
-
-# Generate sound effects
-uv run tools/sfx.py --preset whoosh --output sfx.mp3
-
-# Redub video with different voice
-uv run tools/redub.py --input video.mp4 --voice-id VOICE_ID --output dubbed.mp4
-
-# Add background music to existing video
-uv run tools/addmusic.py --input video.mp4 --prompt "Subtle ambient" --output output.mp4
-
-# Rebrand NotebookLM videos (trim outro, add your logo/URL)
-uv run tools/notebooklm_brand.py --input video.mp4 --logo logo.png --url "mysite.com" --output branded.mp4
-
-# AI image editing (style transfer, backgrounds, custom prompts)
-uv run tools/image_edit.py --input photo.jpg --style cyberpunk --cloud modal
-uv run tools/image_edit.py --input photo.jpg --prompt "Add sunglasses" --cloud modal
-
-# AI image upscaling (2x/4x)
-uv run tools/upscale.py --input photo.jpg --output photo_4x.png --cloud modal
-
-# Remove watermarks (requires cloud GPU)
-uv run tools/dewatermark.py --input video.mp4 --preset sora --output clean.mp4 --cloud modal
-
-# Locate watermark coordinates
-uv run tools/locate_watermark.py --input video.mp4 --grid --output-dir ./review/
-
-# Generate talking head video from image + audio (SoulX-FlashHead)
-uv run tools/soulx.py --image portrait.png --audio voiceover.mp3 --output talking.mp4
-
-# AI image generation (FLUX.2 klein 4B; klein-9B is a non-commercial Modal opt-in)
-uv run tools/flux2.py --prompt "A sunset over mountains" --cloud modal
-uv run tools/flux2.py --preset title-bg --brand digital-samba --cloud modal
-uv run tools/flux2.py --list-presets
-
-# AI video generation (LTX-2.3 22B — text-to-video + image-to-video)
-uv run tools/ltx2.py --prompt "A sunset over the ocean, cinematic" --cloud modal
-uv run tools/ltx2.py --prompt "Gentle camera drift" --input photo.jpg --cloud modal
-
-# Publish a finished render to YouTube (OAuth 2.0 + Data API v3) — contributed by @dascope (#29)
-uv run tools/youtube_upload.py --auth                                   # one-time browser login
-uv run tools/youtube_upload.py --video out/video.mp4 --title "My video" --privacy private --json-out
+claude
 ```
-</details>
 
+Accept the **workspace trust** prompt when it appears. Framecipe registers its hooks, the `/buat-video` command and a narrow permission allowlist in `.claude/settings.json`, and Claude Code applies them only in a trusted workspace.
 
-**Tool Categories:**
+> Always run Claude Code from the main checkout, not from a git worktree. The run helper refuses to work inside a worktree.
 
-| Type | Tools | Purpose |
-|------|-------|---------|
-| **Project** | voiceover, music, music_gen, sfx | Used during video creation workflow |
-| **Utility** | redub, addmusic, notebooklm_brand, locate_watermark | Quick transformations, no project needed |
-| **Cloud GPU** | image_edit, upscale, dewatermark, sadtalker, soulx, qwen3_tts, flux2, music_gen, ltx2 | AI processing via Modal or RunPod |
-| **Publishing** | youtube_upload | Upload a finished render to YouTube (or use `/publish`) |
+### 3. Check the setup
 
-### Cloud GPU (Modal + RunPod)
+On the home page, the **Kesehatan** (health) card should show green checks for Node, npm, Claude Code, the hooks and the `/buat-video` command.
 
-8 AI tools run on cloud GPUs. Use `--cloud modal` (recommended) or `--cloud runpod` on any tool.
+### 4. Make your first video
 
-| Tool | What It Does | Est. Cost |
-|------|--------------|-----------|
-| `qwen3_tts` | AI text-to-speech (9 speakers, voice cloning) | ~$0.01 |
-| `flux2` | AI image generation & editing | ~$0.02 |
-| `image_edit` | AI image editing & style transfer | ~$0.03 |
-| `upscale` | AI image upscaling (2x/4x) | ~$0.01 |
-| `music_gen` | AI music generation (8 scene presets) | Free (acemusic) / ~$0.05 (self-hosted) |
-| `soulx` | Talking head video from portrait + audio — holds identity over long takes | ~$0.0024/sec |
-| `sadtalker` | Talking head video, warp-based — fast, cheap drafts | ~$0.10 |
-| `ltx2` | AI video generation (text-to-video, image-to-video) | ~$0.23 |
-| `dewatermark` | Video watermark removal | ~$0.10 |
+1. On the home page, select the sample recipe **Contoh Penjelasan**, a 30-second 16:9 explainer.
+2. Enter a topic, for example *Why is the sky blue?*, and click **Buat prompt**.
+3. Copy the prompt and paste it into Claude Code.
+4. Follow the run under **Eksekusi** (execution). The video appears under **Video** when it finishes.
 
-**Modal (recommended):** Each tool deploys from `docker/modal-*/app.py` — Modal builds and hosts the containers. $30/month free compute on the Starter plan, typical usage is $1-2/month. Run `/setup` to deploy all tools automatically.
+## Making videos
 
-**RunPod (alternative):** Uses pre-built Docker images from `ghcr.io/conalmullan/video-toolkit-*`. Pay-per-second, no minimums. Run `uv run tools/<tool>.py --setup` to create endpoints.
+### Ways to start a run
 
-See [docs/modal-setup.md](docs/modal-setup.md) and [docs/runpod-setup.md](docs/runpod-setup.md) for details.
+| Prompt in Claude Code | Use it when |
+|---|---|
+| `/buat-video req=<id>` | **Main flow.** Produces a request created in the dashboard. |
+| `/buat-video <recipe-id> "<topic>"` | Starting directly from chat, without the dashboard form. |
+| `/buat-video perbaiki=<runId>` | Resuming a failed, cancelled or stalled run from its existing project files (*perbaiki* means "fix"). The execution page shows this prompt for you. |
 
-## Project Structure
+### What a recipe controls
+
+| Field | Purpose |
+|---|---|
+| Template and brand | The Remotion template to build on and the brand that sets its colors, fonts and logo. |
+| Output | The aspect ratio, resolution and frame rate come from the template. The target duration is yours to set. |
+| Scenes | An ordered list of scenes. Each has a label, goal, duration, writing rules, a visual hint and an optional transition. |
+| Style | Tone, audience, language and global writing rules. |
+| References | Templates, examples, past projects, transitions, components, brands or links that Claude studies before it builds. |
+| Skills | The Claude skills loaded for every run, for example `remotion-best-practices`. |
+| Approval | `auto` runs straight through. `script-review` pauses after the script so you can approve it in chat. |
+| Audio | Optional voiceover and music, which need the matching provider API key. The sample recipe is silent. |
+| Notes | Free-form guidance that Claude follows on every run. |
+
+### Run statuses
+
+| Status | Meaning | What to do |
+|---|---|---|
+| **Berjalan** (running) | Claude is working. | Nothing. |
+| **Menunggu Anda** (waiting for you) | Claude is waiting for your reply in chat, for example a script approval. | Reply in Claude Code. |
+| **Menunggu izin Anda** (waiting for permission) | A Claude Code permission prompt is open. | Answer it in Claude Code. |
+| **Claude berhenti** (Claude stopped) | Claude stopped responding before the run was closed. | Continue in the chat. |
+| **Terhenti** (stalled) | No activity for more than 15 minutes, usually because the session was closed. | Resume with `perbaiki=<runId>` or mark the run as failed. |
+| **Gagal** (failed) | A step could not be fixed. The reason is shown on the execution page. | Fix the cause and resume. |
+| **Sukses** (success) | The video passed validation and is in the gallery. | Watch it. |
+
+## Dashboard tour
+
+The dashboard interface is in Indonesian. The table gives each page with its English meaning.
+
+| Page | Meaning | What you do there |
+|---|---|---|
+| **Beranda** | Home | Create a video request, see the active run, check system health, and see the latest videos. |
+| **Alur** | Recipes | Create, edit, duplicate and archive recipes. |
+| **Video** | Gallery | Watch, filter and download finished videos. |
+| **Eksekusi** | Executions | Follow runs live: the stage timeline, skills, files, commands and review frames. |
+| **Referensi Desain** | Design references | Browse templates, brands, examples, transitions and components. |
+| **Skill & Tools** | Skills and tools | See the skills, commands and tools in the workspace, with usage statistics. |
+| **Cara Kerja** | How it works | See the pipeline diagram, costs, status definitions and trigger options. |
+| **Pengaturan** | Settings | See tool versions, the state of the hooks and command, and which API keys are set. |
+
+## The production pipeline
+
+Every run moves through nine stages, and the dashboard shows the status and duration of each one.
+
+| Stage | What happens |
+|---|---|
+| **Setup** (Persiapan) | The project folder is created from the template, and the run and its recipe snapshot are recorded. |
+| **Script** (Naskah) | Claude writes a scene-by-scene script and fills in the template's configuration. |
+| **Assets** and **Audio** | Optional. They run only when the recipe asks for assets or audio. |
+| **Compose** (Komposisi) | Claude adapts components, theme and transitions to the brand and each scene's visual hint. |
+| **QC** | Reserved for extra quality checks. The default command skips it. |
+| **Render** | Remotion renders the MP4 with the shared headless browser. |
+| **Review** (Review visual) | Frames are extracted and inspected. Claude fixes clipped text, overlapping elements or blank frames, then re-renders, up to twice. The frames become the gallery thumbnails. |
+| **Done** (Selesai) | The video is validated and recorded, and `node_modules` is removed. |
+
+### The run helper
+
+Claude drives every stage through `node dashboard/bin/run.mjs <command>`. Each command prints JSON, which keeps the process predictable and easy to audit.
+
+| Command | Purpose |
+|---|---|
+| `start` | Start a run from a request (`--request`), a recipe and topic (`--flow --topic`), or a failed run (`--retry`). |
+| `stage <name>` | Enter a pipeline stage. |
+| `wait --reason` | Pause for the user, for example for script review. |
+| `install` | Install the project's dependencies. |
+| `render` | Render the video with Remotion. |
+| `stills --count N` | Extract review frames. |
+| `finish` | Validate the MP4 and close the run as successful. |
+| `fail --reason` | Close the run as failed, with a reason. |
+| `status` | Show the active run. |
+
+## AI and motion-graphics toolkit
+
+Framecipe is built on the [claude-code-video-toolkit](https://github.com/digitalsamba/claude-code-video-toolkit), and every part of it can be used in recipes or on its own.
+
+**Motion graphics (Remotion)**
+- **Templates:** `sprint-review`, `sprint-review-v2`, `product-demo`, `ai-engineering-review`, and `concept-explainer-short` (9:16, Python/moviepy).
+- **Transitions:** `glitch`, `rgbSplit`, `zoomBlur`, `lightLeak`, `clockWipe`, `pixelate`, `checkerboard`, plus Remotion's `slide`, `fade`, `wipe` and `flip`. Preview them with `cd showcase/transitions && npm install && npm run studio`.
+- **Components and themes:** reusable scene components and a brand-aware theme system in `lib/`.
+- **Brands:** colors, fonts, logos and voice settings in `brands/<name>/`.
+
+**AI generation tools** (`tools/`, run with `uv run`; the cloud GPU tools use [Modal](https://modal.com/) or [RunPod](https://runpod.io/))
+
+| Tool | What it does |
+|---|---|
+| `voiceover` / `qwen3_tts` | Text-to-speech with ElevenLabs or self-hosted Qwen3-TTS, including voice cloning. |
+| `music_gen` / `music` / `sfx` | Background music (ACE-Step, ElevenLabs) and sound effects. |
+| `flux2` / `image_edit` / `upscale` | Image generation, AI image editing and upscaling. |
+| `ltx2` | AI video clips (text-to-video and image-to-video). |
+| `soulx` / `sadtalker` | Talking-head video from a portrait and an audio track. |
+| `redub`, `addmusic`, `dewatermark`, `youtube_upload` | Re-voicing, adding music, removing watermarks and publishing. |
+
+**Claude skills** in `.claude/skills/`: Remotion, frontend design, FFmpeg, ElevenLabs, Ideogram 4, ACE-Step, LTX-2, moviepy, Playwright recording, and more.
+
+**Other Claude Code commands:** `/video` (guided manual production), `/setup` (cloud GPU and voice setup), `/brand`, `/template`, `/scene-review`, `/design`, `/generate-voiceover`, `/record-demo`, `/thumbnail` and `/publish`.
+
+More detail is in [docs/getting-started.md](docs/getting-started.md), [docs/creating-templates.md](docs/creating-templates.md), [docs/creating-brands.md](docs/creating-brands.md), [docs/modal-setup.md](docs/modal-setup.md) and [lib/project/README.md](lib/project/README.md).
+
+## Project layout
 
 ```
-claude-code-video-toolkit/
+.
+├── dashboard/                 # Framecipe dashboard (Next.js 16, App Router)
+│   ├── app/                   # Pages, server actions and the media route
+│   ├── components/            # UI components
+│   ├── core/                  # Core logic as plain ESM modules, with tests next to them
+│   ├── bin/
+│   │   ├── run.mjs            # Run helper that Claude uses at every stage
+│   │   └── hook.mjs           # Claude Code hook that records run events
+│   └── content/               # "How it works" page content
+├── flows/<id>/flow.json       # Recipes
+├── projects/<slug>/           # Video projects (git-ignored)
+│   ├── runs/<runId>/          # run.json manifest, recipe snapshot and review frames
+│   └── out/<runId>.mp4        # Rendered videos
+├── .dashboard/                # Runtime data: requests, event logs, active run, shared browser (git-ignored)
 ├── .claude/
-│   ├── skills/          # Domain knowledge for Claude
-│   └── commands/        # Slash commands (/video, /brand, etc.)
-├── lib/                 # Shared components, theme system, utilities
-│   ├── components/      # Reusable video components (11 components)
-│   ├── transitions/     # Scene transition effects (7 custom + 4 official)
-│   ├── theme/           # ThemeProvider, useTheme
-│   └── project/         # Multi-session project system
-├── tools/               # Python CLI tools
-├── templates/           # Video templates
-├── brands/              # Brand profiles
-├── projects/            # Your video projects (gitignored)
-├── examples/            # Curated showcase projects with finished videos
-├── assets/              # Shared assets
-├── playwright/          # Recording infrastructure
-├── docs/                # Documentation
-└── _internal/           # Toolkit metadata & roadmap
+│   ├── commands/buat-video.md # The /buat-video production command
+│   ├── settings.json          # Hooks and permission allowlist
+│   └── skills/                # Claude skills
+├── templates/  brands/  lib/  # Remotion templates, brand profiles and shared components
+├── examples/                  # Finished reference projects
+├── tools/                     # Python AI tools
+└── docs/                      # Documentation, product spec and plans
 ```
 
-## Documentation
+## Security and privacy
 
-- [Getting Started](docs/getting-started.md)
-- [Modal Setup](docs/modal-setup.md) — Cloud GPU with Modal (recommended)
-- [RunPod Setup](docs/runpod-setup.md) — Cloud GPU with RunPod (alternative)
-- [Creating Templates](docs/creating-templates.md)
-- [Creating Brands](docs/creating-brands.md)
-- [Project System](lib/project/README.md) — Multi-session lifecycle, schema, reconciliation
-- [Optional Components](docs/optional-components.md) — Local GPU tools setup
-- [Toolkit Development](_internal/ROADMAP.md) — Roadmap, backlog, changelog
+- **Local only.** The dashboard listens on `127.0.0.1:3210` and rejects requests whose `Host` header is anything else, which blocks DNS-rebinding attacks.
+- **Contained file access.** Every file the dashboard reads goes through a path guard that rejects `..`, absolute paths, and symlinks or junctions that point outside the repository. The media route serves only allowlisted folders and file types.
+- **Secrets stay put.** Values from `.env` are never sent to the browser. The dashboard only reports whether each key is set.
+- **No shell injection.** Child processes are started with argument arrays and no shell. Topics and notes are written to files and never passed as command arguments.
+- **Narrow permissions.** The allowlist in `.claude/settings.json` lets Claude run only the run helper and edit only files under `projects/`. Anything else still asks for your permission.
+- **Your work is never deleted.** Archiving a recipe moves its folder. Automatic cleanup only removes files that can be rebuilt: a project's `node_modules` after a successful render, and a run's own stale MP4 just before that run re-renders.
 
-## Video Workflow
+## Troubleshooting
 
-```
-/video → Script → Assets → Scene Review → Design → Audio → Preview → Render → Publish
-```
+| Symptom | Fix |
+|---|---|
+| Claude asks permission for every `run.mjs` call, or nothing appears in the execution view | The workspace is not trusted. Restart `claude` at the repository root and accept the trust prompt. |
+| `start` says another run is still active | Only one run can be active. Wait for it to finish, mark it as failed on the execution page, or wait 15 minutes without activity. |
+| `run.mjs` refuses to start: "bukan git worktree" | Open Claude Code in the main checkout, not in a git worktree. |
+| A run shows **Terhenti** (stalled) | The Claude session ended mid-run. Resume with `/buat-video perbaiki=<runId>`. |
+| Port 3210 is already in use | Another dashboard instance is running. Stop it before starting a new one. |
+| A JSON file shows as **Data rusak** (corrupt data) | The file could not be parsed. Fix or restore it. The rest of the dashboard keeps working. |
 
-1. **Create project** — Run `/video`, choose template and brand
-2. **Review script** — Edit `VOICEOVER-SCRIPT.md` to plan content and assets
-3. **Gather assets** — Record demos with `/record-demo` or add external videos
-4. **Scene review** — Run `/scene-review` to verify visuals in Remotion Studio
-5. **Design refinement** — Use `/design` to improve slide visuals with the frontend-design skill
-6. **Generate audio** — AI voiceover with `/generate-voiceover`
-7. **Configure** — Update config file with asset paths and timing
-8. **Preview** — `npm run studio` for live preview
-9. **Iterate** — Work with Claude Code to adjust timing, styling, content
-10. **Render** — `npm run render` for final MP4
-
-## Using with Codex
-
-The toolkit is built for Claude Code, but an experimental migration script installs its skills and workflows for [Codex](https://openai.com/codex/) and generates an `AGENTS.md` block from `CLAUDE.md`:
+## Development
 
 ```bash
-uv run scripts/migrate_to_codex.py --force
+cd dashboard
+npm test          # Vitest unit and CLI tests
+npm run lint      # ESLint
+npm run build     # Production build
 ```
 
-See [docs/codex.md](docs/codex.md) for what it installs, how the `AGENTS.md` block is managed, and how to remove it. Contributed by [@kimhoontae-gogo](https://github.com/kimhoontae-gogo) in [#16](https://github.com/digitalsamba/claude-code-video-toolkit/pull/16).
+- **Stack:** Next.js 16 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS 4, shadcn/ui (Base UI), zod 4 and Vitest.
+- **Core logic** is in `dashboard/core/` as plain `.mjs` modules. The UI, the run helper and the hook all share it. The hook path uses only Node built-ins, so it stays fast.
+- **Tests** run against temporary repositories with spaces in their paths, junctions and fixed clocks.
+- **Product spec:** [docs/superpowers/specs/2026-10-24-dashboard-video-generation-prd.md](docs/superpowers/specs/2026-10-24-dashboard-video-generation-prd.md)
+- **Implementation plan:** [docs/superpowers/plans/2026-10-24-dashboard-video-generation-mvp.md](docs/superpowers/plans/2026-10-24-dashboard-video-generation-mvp.md)
+- **Design decisions:** [docs/superpowers/plans/2026-10-24-dashboard-video-generation-mvp-rulings.md](docs/superpowers/plans/2026-10-24-dashboard-video-generation-mvp-rulings.md)
 
-## Using with Kiro CLI
+## Roadmap
 
-A sibling migration script installs the toolkit's skills and workflows for [Kiro CLI](https://kiro.dev/) — `/video`, `/setup`, etc. work as slash commands, from any directory:
+- **One-click Generate:** run a recipe from the dashboard without the chat, with live render progress and a cancel button.
+- **Revisions:** request a new version of an existing video with an instruction, keeping earlier versions.
+- **Your own inspiration:** upload images, videos or links as references and attach them to a recipe.
+- **Recipe extras:** brand style preview, "use this video as a reference", and recipe import and export.
+- **Gallery actions:** open the project folder, open it in Remotion Studio, and move items to a trash folder.
+- **Narration and music** as first-class, end-to-end tested recipe options.
 
-```bash
-uv run scripts/migrate_to_kiro.py --force
-```
+## Credits and license
 
-See [docs/kiro.md](docs/kiro.md) for what it installs, how it achieves Claude Code-parity, and how to remove it.
+Framecipe is built on [claude-code-video-toolkit](https://github.com/digitalsamba/claude-code-video-toolkit) by Digital Samba, which provides the Remotion templates, components, transitions, brands, Claude skills and AI tools. Thanks to its author and contributors.
 
-## Community add-ons
+Released under the [MIT License](LICENSE).
 
-Projects built on or around the toolkit that live in their own repos — typically because they need
-software or a service we can't bundle. We haven't reviewed them; check each project's README.
-
-| Add-on | What it does | Needs |
-|--------|--------------|-------|
-| [VOICEPEAK for voiceover.py](https://github.com/fialuxe/claude-code-video-toolkit-expand-ja-voicepeak/) | Offline Japanese TTS provider (patches `voiceover.py`) | VOICEPEAK (paid, local) |
-| [arkiv](https://github.com/vulture-s/arkiv) | Natural-language search (EN/中文/日本語) over your own footage archive, returning scenes with start/end timecodes to use as a template's `videoFile` | A local arkiv instance (source-available, PolyForm Perimeter) |
-| [Upload-Post publishing](https://github.com/Upload-Post/claude-code-video-toolkit-upload-post) | Publish a rendered video to TikTok, Instagram, YouTube, LinkedIn, Facebook, X, Threads, Pinterest and Bluesky via a `/publish-social` command | An Upload-Post account and API key (hosted, free plan available) |
-
-To be listed, open an issue with a link and a one-line description. Integrations that need a
-hosted third-party service live here rather than in the toolkit itself — see
-[CONTRIBUTING.md](CONTRIBUTING.md) for why, and for how the few exceptions came about.
-
-## Contributing
-
-Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-Built for use with [Claude Code](https://claude.ai/code) by Anthropic.
+**Remotion** is distributed under its own license. It is free for individuals and small teams, but some companies need a paid company license. Check [remotion.dev/license](https://www.remotion.dev/license) before commercial use. Third-party AI services (ElevenLabs, Modal, RunPod, Ideogram and others) are subject to their own terms and pricing.
