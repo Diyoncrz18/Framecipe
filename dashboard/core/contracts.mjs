@@ -40,7 +40,7 @@ const sceneSchema = z.object({
 
 const voiceoverSchema = z.object({
   enabled: z.boolean(bad('Suara')),
-  provider: z.enum(['elevenlabs', 'qwen3', '60db'], { error: 'Provider suara tidak dikenal.' }).optional(),
+  provider: z.enum(['edge', 'elevenlabs', 'qwen3', '60db'], { error: 'Provider suara tidak dikenal.' }).optional(),
   voice: optText('Suara'),
 }, bad('Suara')).superRefine((v, ctx) => {
   if (v.enabled && !v.provider) ctx.addIssue({ code: 'custom', path: ['provider'], message: 'Pilih provider suara.' });

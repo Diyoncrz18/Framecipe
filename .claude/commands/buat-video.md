@@ -18,7 +18,7 @@ Kamu menjalankan **alur yang sudah disetujui pemiliknya** di dashboard. Ini buka
 - Ubah file hanya di dalam `projects/<project>/`. Jangan mengubah `templates/`, `lib/`, `brands/`, `flows/`, atau `examples/`.
 - Setelah `start` berhasil: jika sebuah langkah gagal dan tidak bisa kamu perbaiki dalam 2 percobaan, jalankan `node dashboard/bin/run.mjs fail --reason "<penjelasan singkat>"` lalu berhenti. Jangan pernah berhenti tanpa `finish` atau `fail`.
 - Bila `start` gagal (misalnya masih ada run aktif lain), sampaikan pesannya ke pengguna lalu berhenti. Jangan menjalankan `fail`, `finish`, `stage`, atau subperintah lain: run aktif itu milik sesi lain.
-- Untuk `install` dan `render`, beri perintah Bash timeout 600000 ms.
+- Untuk `audio`, `install`, dan `render`, beri perintah Bash timeout 600000 ms.
 
 ## Langkah
 1. Mulai run sesuai argumen:
@@ -39,7 +39,10 @@ Kamu menjalankan **alur yang sudah disetujui pemiliknya** di dashboard. Ini buka
    - Isi config template sesuai naskah. Untuk `sprint-review`, isi `src/config/sprint-config.ts` dengan `demos: []` bila tidak ada aset demo, dan buat durasi total sama dengan jumlah durasi scene.
    - Isi `scenes` di `project.json` sesuai format toolkit (`lib/project/types.ts`).
 5. Bila `flow.approval` adalah `script-review`: jalankan `node dashboard/bin/run.mjs wait --reason "review naskah"`, tampilkan ringkasan naskah di chat, minta persetujuan, lalu tunggu. Setelah disetujui, lanjutkan.
-6. `stage assets` dan `stage audio` hanya bila alur meminta aset, atau bila ada `flow.audio.*.enabled` yang bernilai true.
+6. `stage assets` hanya bila alur meminta aset. Bila `flow.audio.voiceover.enabled` atau `flow.audio.music.enabled` bernilai true, jalankan `stage audio`:
+   - Voiceover: untuk setiap scene dengan `narration: true`, tulis kalimat yang diucapkan saja (tanpa judul, label, atau catatan) ke `projects/<project>/public/audio/scenes/<NN>-<id-scene>.txt`, dengan `NN` urutan dua digit (01, 02, ...).
+   - Jalankan `node dashboard/bin/run.mjs audio`. Output JSON-nya berisi file suara per scene beserta durasinya (relatif ke `public/audio/`), dan `background-music.mp3` bila musik diminta.
+   - Pasang hasilnya di config template. Untuk `sprint-review`: `audioFile` tiap scene (misalnya `scenes/01-hook.mp3`), `audio.backgroundMusicFile: 'background-music.mp3'`, dan `audio.backgroundMusicVolume` sekitar 0.12 bila ada voiceover. Kosongkan `audio.voiceoverFile` bila suara sudah per scene. Panjangkan durasi scene agar paling tidak durasi suaranya ditambah 0,5 detik, lalu sesuaikan durasi total.
 7. `stage compose`: sesuaikan komponen dan tema di salinan proyek dengan brand `flow.brand`, `visualHint`, dan `transitionOut` tiap scene.
 8. `node dashboard/bin/run.mjs install`
 9. `stage render`, lalu `node dashboard/bin/run.mjs render`.

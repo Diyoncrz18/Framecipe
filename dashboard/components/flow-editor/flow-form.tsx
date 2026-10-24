@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MUSIC_KEYS, VOICE_PROVIDER_KEYS, coerceDraft } from "@/core/flow-form.mjs";
+import { VOICE_PROVIDER_KEYS, coerceDraft } from "@/core/flow-form.mjs";
 import { slugify } from "@/core/slug.mjs";
 import { DurationBar } from "./duration-bar";
 import { Field, NativeSelect } from "./field";
@@ -21,6 +21,7 @@ import type { EditorData, FlowDraft, Scene } from "./types";
 
 const PROVIDERS = [
   { value: "", label: "Pilih provider" },
+  { value: "edge", label: "Edge TTS (gratis)" },
   { value: "elevenlabs", label: "ElevenLabs" },
   { value: "qwen3", label: "Qwen3-TTS" },
   { value: "60db", label: "60db" },
@@ -97,7 +98,7 @@ export function FlowForm({ mode, initial, folderId, version = 0, initialErrors =
   const { output, audio } = flow;
   const { voiceover: vo, music } = audio;
   const brand = data.brands.find((b) => b.id === flow.brand);
-  const cloudKeys = [...(vo.enabled && vo.provider ? (VOICE_PROVIDER_KEYS as Record<string, string[]>)[vo.provider] ?? [] : []), ...(music.enabled ? MUSIC_KEYS : [])];
+  const cloudKeys = [...(vo.enabled && vo.provider ? (VOICE_PROVIDER_KEYS as Record<string, string[]>)[vo.provider] ?? [] : [])];
   const id = (name: string) => `${uid}-${name}`;
   const num = (v: string) => (v === "" ? "" : Number(v));
   // The id in flow.json names another folder: saving would write flows/<that id>, over a flow that is not the one being edited.
@@ -226,11 +227,11 @@ export function FlowForm({ mode, initial, folderId, version = 0, initialErrors =
         <Label className="w-fit">
           <Checkbox
             checked={vo.enabled}
-            onCheckedChange={(enabled) => patch({ audio: { ...audio, voiceover: { ...vo, enabled, provider: vo.provider || "elevenlabs" } } })}
+            onCheckedChange={(enabled) => patch({ audio: { ...audio, voiceover: { ...vo, enabled, provider: vo.provider || "edge" } } })}
           />
           Suara
         </Label>
-        <Field label="Provider suara" htmlFor={id("provider")} hint="Qwen3-TTS tidak mendukung Bahasa Indonesia." className="max-w-xs">
+        <Field label="Provider suara" htmlFor={id("provider")} hint="Edge TTS gratis tanpa API key dan mendukung Bahasa Indonesia. Qwen3-TTS tidak mendukung Bahasa Indonesia." className="max-w-xs">
           <NativeSelect
             id={id("provider")} aria-describedby={`${id("provider")}-hint`} disabled={!vo.enabled} value={vo.provider ?? ""} options={PROVIDERS}
             onChange={(provider) => patch({ audio: { ...audio, voiceover: { ...vo, provider } } })}
@@ -238,13 +239,13 @@ export function FlowForm({ mode, initial, folderId, version = 0, initialErrors =
         </Field>
         <Label className="w-fit">
           <Checkbox checked={music.enabled} onCheckedChange={(enabled) => patch({ audio: { ...audio, music: { ...music, enabled } } })} />
-          Musik
+          Musik latar (trek gratis bawaan, 60 detik)
         </Label>
         <Label className="w-fit">
           <Checkbox checked={audio.captions.enabled} onCheckedChange={(enabled) => patch({ audio: { ...audio, captions: { enabled } } })} />
           Teks/caption
         </Label>
-        {(vo.enabled || music.enabled) && (
+        {cloudKeys.length > 0 && (
           <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
             <p className="font-medium text-amber-900">Butuh layanan cloud/berbayar</p>
             <ul aria-label="API key yang dibutuhkan" className="mt-1 flex flex-col gap-1">

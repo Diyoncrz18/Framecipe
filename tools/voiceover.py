@@ -24,6 +24,9 @@ Usage:
     # With concat for SadTalker narrator
     uv run tools/voiceover.py --scene-dir public/audio/scenes --concat public/audio/voiceover-concat.mp3
 
+    # Free Microsoft Edge TTS (no API key, Indonesian voices id-ID-GadisNeural / id-ID-ArdiNeural)
+    uv run tools/voiceover.py --provider edge --voice-id id-ID-ArdiNeural --scene-dir public/audio/scenes --json
+
     # Using Qwen3-TTS provider
     uv run tools/voiceover.py --provider qwen3 --speaker Ryan --scene-dir public/audio/scenes --json
     uv run tools/voiceover.py --provider qwen3 --tone warm --scene-dir public/audio/scenes --json
@@ -85,6 +88,10 @@ DEPRECATED_MODEL_IDS = {
     ),
 }
 _deprecation_noted: set[str] = set()
+
+# Edge TTS: Microsoft Edge's free online read-aloud service, reached through the edge-tts package.
+EDGE_DEFAULT_VOICE = "id-ID-GadisNeural"
+EDGE_BITRATE = 48_000  # edge-tts streams constant-bitrate 24 kHz 48 kbps mono MP3
 
 
 class UrlSafeHelpFormatter(argparse.RawDescriptionHelpFormatter):
@@ -184,8 +191,8 @@ Examples:
         "--provider",
         type=str,
         default="elevenlabs",
-        choices=["elevenlabs", "qwen3", "60db"],
-        help="TTS provider (default: elevenlabs)",
+        choices=["elevenlabs", "qwen3", "60db", "edge"],
+        help="TTS provider (default: elevenlabs). edge = free Microsoft Edge TTS, no API key",
     )
 
     # ElevenLabs-specific options
@@ -193,7 +200,8 @@ Examples:
         "--voice-id",
         "-v",
         type=str,
-        help="ElevenLabs voice ID (uses default from toolkit-registry.json if not provided)",
+        help="ElevenLabs voice ID (uses default from toolkit-registry.json if not provided); "
+             f"for --provider edge an Edge voice name (default: {EDGE_DEFAULT_VOICE})",
     )
     parser.add_argument(
         "--model",
@@ -644,6 +652,44 @@ def generate_single_audio_60db(
     _apply_pacing_qc(result, script, max_wpm)
     return result
 
+
+def generate_single_audio_edge(
+    script: str,
+    output_path: Path,
+    voice: str,
+    speed: float = 1.0,
+    max_wpm: float | None = None,
+) -> dict:
+    """Generate a single audio file with free Microsoft Edge TTS (no API key). Returns result dict."""
+    import asyncio
+
+    import edge_tts
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    rate = f"{round((speed - 1) * 100):+d}%"
+
+    async def synthesize() -> bytes:
+        audio = bytearray()
+        async for chunk in edge_tts.Communicate(script, voice, rate=rate).stream():
+            if chunk["type"] == "audio":
+                audio += chunk["data"]
+        return bytes(audio)
+
+    audio = asyncio.run(synthesize())
+    output_path.write_bytes(audio)
+    # Constant bitrate, so the byte count gives the exact length without needing ffprobe.
+    duration = len(audio) * 8 / EDGE_BITRATE
+    result = {
+        "success": True,
+        "output": str(output_path),
+        "script_chars": len(script),
+        "duration_seconds": round(duration, 2),
+        "duration_frames_30fps": int(duration * 30),
+    }
+    _apply_pacing_qc(result, script, max_wpm)
+    return result
+
+
 def generate_single_audio_qwen3(
     script: str,
     output_path: Path,
@@ -770,7 +816,7 @@ def process_scene_directory(
     scenes = []
     for txt_file in txt_files:
         mp3_file = txt_file.with_suffix(".mp3")
-        script = txt_file.read_text().strip()
+        script = txt_file.read_text(encoding="utf-8").strip()
 
         if not script:
             print(f"Warning: Empty script in {txt_file.name}, skipping", file=sys.stderr)
@@ -891,6 +937,14 @@ def process_scene_directory(
                 enhance=enhance,
                 transport=transport,
                 api_key=sixtydb_api_key,
+                max_wpm=max_wpm,
+            )
+        elif provider == "edge":
+            result = generate_single_audio_edge(
+                script=s["script"],
+                output_path=s["mp3_file"],
+                voice=voice_id,
+                speed=speed,
                 max_wpm=max_wpm,
             )
         else:
@@ -1147,6 +1201,9 @@ def main():
         from sixtydb_tts import DEFAULT_VOICE_ID as _SIXTYDB_DEFAULT_VOICE
         voice_id = args.voice_id or get_sixtydb_voice_id() or _SIXTYDB_DEFAULT_VOICE
 
+    if provider == "edge":
+        voice_id = args.voice_id or EDGE_DEFAULT_VOICE
+
     if provider == "elevenlabs":
         api_key = get_elevenlabs_api_key()
         if not api_key:
@@ -1188,7 +1245,7 @@ def main():
 
         if not args.json:
             txt_count = len(list(scene_dir.glob("*.txt")))
-            provider_label = {"qwen3": "Qwen3-TTS", "60db": "60db"}.get(provider, "ElevenLabs")
+            provider_label = {"qwen3": "Qwen3-TTS", "60db": "60db", "edge": "Edge TTS"}.get(provider, "ElevenLabs")
             print(f"Processing {txt_count} scene scripts in {scene_dir} ({provider_label})...", file=sys.stderr)
 
         if args.dry_run:
@@ -1244,6 +1301,8 @@ def main():
                     "speed": args.speed,
                     "enhance": args.enhance,
                 }
+            elif provider == "edge":
+                result["voice_id"] = voice_id
             else:
                 result["speaker"] = args.speaker
                 result["language"] = args.language
@@ -1303,6 +1362,8 @@ def main():
         elif provider == "60db":
             result["voice_id"] = voice_id
             result["transport"] = args.transport
+        elif provider == "edge":
+            result["voice_id"] = voice_id
 
         # Concat if requested
         if args.concat:
@@ -1358,6 +1419,8 @@ def main():
                 "speed": args.speed,
                 "enhance": args.enhance,
             }
+        elif provider == "edge":
+            result["voice_id"] = voice_id
         else:
             result["speaker"] = args.speaker
             result["language"] = args.language
@@ -1374,9 +1437,10 @@ def main():
             if provider == "elevenlabs":
                 print(f"  Voice ID: {voice_id}")
                 print(f"  Model: {args.model}")
-            elif provider == "60db":
+            elif provider in ("60db", "edge"):
                 print(f"  Voice ID: {voice_id}")
-                print(f"  Transport: {args.transport}")
+                if provider == "60db":
+                    print(f"  Transport: {args.transport}")
             else:
                 print(f"  Speaker: {args.speaker}")
                 print(f"  Language: {args.language}")
@@ -1386,7 +1450,7 @@ def main():
 
     # Generate voiceover
     if not args.json:
-        provider_label = {"qwen3": "Qwen3-TTS", "60db": "60db"}.get(provider, "ElevenLabs")
+        provider_label = {"qwen3": "Qwen3-TTS", "60db": "60db", "edge": "Edge TTS"}.get(provider, "ElevenLabs")
         print(f"Generating voiceover ({len(script)} chars, {provider_label})...", file=sys.stderr)
 
     if provider == "qwen3":
@@ -1416,6 +1480,14 @@ def main():
             api_key=sixtydb_api_key,
             max_wpm=args.max_wpm,
         )
+    elif provider == "edge":
+        result = generate_single_audio_edge(
+            script=script,
+            output_path=output_path,
+            voice=voice_id,
+            speed=args.speed,
+            max_wpm=args.max_wpm,
+        )
     else:
         result = generate_single_audio(
             client=client,
@@ -1438,6 +1510,8 @@ def main():
     elif provider == "60db":
         result["voice_id"] = voice_id
         result["transport"] = args.transport
+    elif provider == "edge":
+        result["voice_id"] = voice_id
 
     if args.json:
         print(json.dumps(result, indent=2))

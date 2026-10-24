@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { parseFlow } from './contracts.mjs';
-import { MUSIC_KEYS, VOICE_PROVIDER_KEYS, coerceDraft, defaultFlow, durationSegments, moveScene } from './flow-form.mjs';
+import { VOICE_PROVIDER_KEYS, coerceDraft, defaultFlow, durationSegments, moveScene } from './flow-form.mjs';
 import { fixtureFlow } from './test-utils.mjs';
 
 it('moveScene dan durationSegments', () => {
@@ -29,8 +29,7 @@ it('defaultFlow menghasilkan alur yang lolos skema setelah id dan nama diisi', (
 });
 
 it('daftar key cloud per provider', () => {
-  expect(VOICE_PROVIDER_KEYS).toEqual({ elevenlabs: ['ELEVENLABS_API_KEY'], qwen3: ['RUNPOD_API_KEY'], '60db': ['SIXTYDB_API_KEY'] });
-  expect(MUSIC_KEYS).toEqual(['ACEMUSIC_API_KEY']);
+  expect(VOICE_PROVIDER_KEYS).toEqual({ edge: [], elevenlabs: ['ELEVENLABS_API_KEY'], qwen3: ['RUNPOD_API_KEY'], '60db': ['SIXTYDB_API_KEY'] });
 });
 
 it('coerceDraft: alur yang sah lolos tanpa perubahan isi', () => {

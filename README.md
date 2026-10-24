@@ -154,7 +154,7 @@ On the home page, the **Kesehatan** (health) card should show green checks for N
 | References | Templates, examples, past projects, transitions, components, brands or links that Claude studies before it builds. |
 | Skills | The Claude skills loaded for every run, for example `remotion-best-practices`. |
 | Approval | `auto` runs straight through. `script-review` pauses after the script so you can approve it in chat. |
-| Audio | Optional voiceover and music, which need the matching provider API key. The sample recipe is silent. |
+| Audio | Optional narration and background music. Edge TTS (free, no key, Indonesian voices) and the built-in music track work out of the box; ElevenLabs, 60db and Qwen3-TTS need their own keys. The **Contoh Penjelasan Bersuara** recipe uses Edge TTS and music. |
 | Notes | Free-form guidance that Claude follows on every run. |
 
 ### Run statuses
@@ -192,7 +192,7 @@ Every run moves through nine stages, and the dashboard shows the status and dura
 |---|---|
 | **Setup** (Persiapan) | The project folder is created from the template, and the run and its recipe snapshot are recorded. |
 | **Script** (Naskah) | Claude writes a scene-by-scene script and fills in the template's configuration. |
-| **Assets** and **Audio** | Optional. They run only when the recipe asks for assets or audio. |
+| **Assets** and **Audio** | Optional. Audio turns the per-scene narration into speech with `run.mjs audio` (Edge TTS by default) and adds the background track. |
 | **Compose** (Komposisi) | Claude adapts components, theme and transitions to the brand and each scene's visual hint. |
 | **QC** | Reserved for extra quality checks. The default command skips it. |
 | **Render** | Remotion renders the MP4 with the shared headless browser. |
@@ -210,6 +210,7 @@ Claude drives every stage through `node dashboard/bin/run.mjs <command>`. Each c
 | `wait --reason` | Pause for the user, for example for script review. |
 | `install` | Install the project's dependencies. |
 | `render` | Render the video with Remotion. |
+| `audio` | Generate the per-scene voiceover and copy the background music, as the recipe asks. |
 | `stills --count N` | Extract review frames. |
 | `finish` | Validate the MP4 and close the run as successful. |
 | `fail --reason` | Close the run as failed, with a reason. |
@@ -229,7 +230,7 @@ Framecipe ships with a full toolkit of templates, components, AI tools and Claud
 
 | Tool | What it does |
 |---|---|
-| `voiceover` / `qwen3_tts` | Text-to-speech with ElevenLabs or self-hosted Qwen3-TTS, including voice cloning. |
+| `voiceover` / `qwen3_tts` | Text-to-speech with free Edge TTS (Indonesian voices), ElevenLabs, 60db or self-hosted Qwen3-TTS, including voice cloning. |
 | `music_gen` / `music` / `sfx` | Background music (ACE-Step, ElevenLabs) and sound effects. |
 | `flux2` / `image_edit` / `upscale` | Image generation, AI image editing and upscaling. |
 | `ltx2` | AI video clips (text-to-video and image-to-video). |
@@ -312,7 +313,7 @@ npm run build     # Production build
 - **Your own inspiration:** upload images, videos or links as references and attach them to a recipe.
 - **Recipe extras:** brand style preview, "use this video as a reference", and recipe import and export.
 - **Gallery actions:** open the project folder, open it in Remotion Studio, and move items to a trash folder.
-- **Narration and music** as first-class, end-to-end tested recipe options.
+- **Generated music** (ACE-Step) and voice choice per recipe.
 
 ## License
 

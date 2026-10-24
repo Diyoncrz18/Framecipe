@@ -1,6 +1,6 @@
-// Run lifecycle behind bin/run.mjs: start, stage, wait, fail, status, install, render, stills, finish.
+// Run lifecycle behind bin/run.mjs: start, stage, wait, fail, status, audio, install, render, stills, finish.
 // Text the user typed (topic, notes) is only ever written to files, never passed as a command argument (NFR-04).
-// Programs run through process.execPath with an args array and no shell: npm-cli.js for npm, remotion-cli.js for render/ffmpeg.
+// Programs run with an args array and no shell: npm-cli.js and remotion-cli.js through process.execPath, Python tools through uv.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -222,10 +222,55 @@ const exitCode = (r) => r.status ?? r.error?.message ?? 'tidak diketahui';
 const fileStat = (file) => fs.statSync(file, { throwIfNoEntry: false });
 const comma = (n) => String(n).replace('.', ',');
 
-// The active run and its project folder: where install, render, stills and finish work.
+// The active run and its project folder: where audio, install, render, stills and finish work.
 function activeProject(root) {
   const run = requireActive(root);
   return { run, proj: resolveInside(root, 'projects', run.project) };
+}
+
+// The free background track a flow with music gets: a 60 s ambient bed made with ACE-Step (an open model), already in the repo.
+const LIBRARY_MUSIC = ['examples', 'sky-blue-short', 'audio', 'music.mp3'];
+const LIBRARY_MUSIC_SECONDS = 60;
+const lastLines = (text) => String(text ?? '').trim().split(/\r?\n/).slice(-3).join(' ');
+
+// Voiceover from the scene scripts Claude wrote to public/audio/scenes/*.txt, plus background music, as the run's flow asks.
+// Paths in the result are relative to the project's public/audio/, the form the templates' audio config takes.
+export function generateAudio(root, deps = defaultDeps) {
+  const { run, proj } = activeProject(root);
+  const flow = readJson(runPaths(root, run.project, run.runId).flowFile);
+  if (!flow.ok) throw coded('FLOW_INVALID', 'Snapshot alur milik run ini tidak bisa dibaca.');
+  const { voiceover, music } = flow.value.audio ?? {};
+  if (!voiceover?.enabled && !music?.enabled) throw coded('NO_AUDIO', 'Alur ini tidak meminta suara maupun musik.');
+  const audioDir = path.join(proj, 'public', 'audio');
+  const result = { voiceover: null, music: null };
+
+  if (voiceover?.enabled) {
+    const sceneDir = path.join(audioDir, 'scenes');
+    if (!fs.existsSync(sceneDir) || !fs.readdirSync(sceneDir).some((f) => f.endsWith('.txt'))) {
+      throw coded('NO_SCRIPT', 'Tulis dulu naskah tiap scene ke public/audio/scenes/<NN>-<id-scene>.txt di folder proyek.');
+    }
+    // The provider is a schema enum, not text the user typed (NFR-04).
+    const r = deps.spawnSync('uv', ['run', 'tools/voiceover.py', '--provider', voiceover.provider, '--scene-dir', sceneDir, '--json'],
+      { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+    if (r.status !== 0) throw coded('AUDIO_FAILED', `Voiceover gagal (kode ${exitCode(r)}): ${lastLines(r.stderr)}`);
+    let out;
+    try { out = JSON.parse(r.stdout); } catch { throw coded('AUDIO_FAILED', 'Voiceover tidak mengembalikan JSON yang bisa dibaca.'); }
+    const failed = out.scenes.filter((s) => !s.success);
+    if (failed.length) throw coded('AUDIO_FAILED', `Voiceover gagal untuk ${failed.length} scene: ${failed.map((s) => s.error).join('; ')}`);
+    result.voiceover = {
+      provider: voiceover.provider,
+      files: out.scenes.map((s) => ({ file: path.relative(audioDir, s.output).split(path.sep).join('/'), durationSeconds: s.duration_seconds ?? null })),
+      totalSeconds: out.total_duration_seconds ?? null,
+    };
+  }
+  if (music?.enabled) {
+    const track = resolveInside(root, ...LIBRARY_MUSIC);
+    if (!fileStat(track)) throw coded('MUSIC_MISSING', `Musik bawaan tidak ditemukan: ${LIBRARY_MUSIC.join('/')}.`);
+    fs.mkdirSync(audioDir, { recursive: true });
+    fs.copyFileSync(track, path.join(audioDir, 'background-music.mp3'));
+    result.music = { source: 'library', file: 'background-music.mp3', durationSeconds: LIBRARY_MUSIC_SECONDS };
+  }
+  return result;
 }
 
 // Child output goes straight to the terminal (stdio: 'inherit'), so a failure message points at it.

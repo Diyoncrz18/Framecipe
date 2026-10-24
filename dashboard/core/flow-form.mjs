@@ -1,8 +1,7 @@
 // Pure helpers for the flow editor. No imports: client components use this module too (no zod, no node:fs in the browser bundle).
 
 // .env keys each cloud audio option needs; the editor shows whether they are filled (ALR-08).
-export const VOICE_PROVIDER_KEYS = { elevenlabs: ['ELEVENLABS_API_KEY'], qwen3: ['RUNPOD_API_KEY'], '60db': ['SIXTYDB_API_KEY'] };
-export const MUSIC_KEYS = ['ACEMUSIC_API_KEY'];
+export const VOICE_PROVIDER_KEYS = { edge: [], elevenlabs: ['ELEVENLABS_API_KEY'], qwen3: ['RUNPOD_API_KEY'], '60db': ['SIXTYDB_API_KEY'] };
 
 // A new flow for the editor. id and name are for the user to fill; version and updatedAt are left out because saveFlow sets them.
 export function defaultFlow(template, brand, { width, height, aspectRatio }) {

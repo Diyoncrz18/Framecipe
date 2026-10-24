@@ -13,7 +13,7 @@ Dashboard ini memesan, Claude membuat, dan dashboard menampilkan hasilnya. Anda 
 | --- | --- | --- |
 | Persiapan | Folder proyek dibuat dari template dan run dicatat. | `run.mjs start` |
 | Naskah | Claude menulis naskah per scene dan mengisi konfigurasi template. | skill `remotion-best-practices`, `VOICEOVER-SCRIPT.md` |
-| Aset & audio | Opsional. Hanya berjalan bila alur memintanya. | tool `voiceover`/`music_gen` (butuh API key) |
+| Aset & audio | Opsional. Hanya berjalan bila alur memintanya. Narasi per scene memakai Edge TTS (gratis, suara Bahasa Indonesia) atau provider lain yang dipilih di alur, dan musik latar memakai trek gratis bawaan. | `run.mjs audio` (tool `voiceover`) |
 | Komposisi | Claude menyesuaikan komponen dan tema scene dengan brand. Tahap ini selalu berjalan. | skill `frontend-design` (opsional) |
 | Install | Dependensi proyek dipasang dengan `npm install`. | `run.mjs install` |
 | Render | Video dirender dengan Remotion, memakai browser bersama. | `run.mjs render` (Remotion, browser bersama) |
@@ -37,7 +37,7 @@ Hanya satu run yang boleh aktif. Bila `/buat-video` menolak mulai karena run lai
 
 ## Biaya
 
-Claude Code berjalan di cloud Anthropic dan memakai kuota langganan Claude Anda. Render dengan Remotion, penyimpanan file, dan dashboard ini gratis dan berjalan lokal. Layanan cloud ElevenLabs, Modal, RunPod, dan Ideogram butuh akun sendiri (umumnya berbayar) dan API key, dan hanya dipakai bila Anda mengisi API key-nya dan alur memintanya. Versi MVP ini berjalan tanpa suara.
+Claude Code berjalan di cloud Anthropic dan memakai kuota langganan Claude Anda. Render dengan Remotion, penyimpanan file, dan dashboard ini gratis dan berjalan lokal. Layanan cloud ElevenLabs, Modal, RunPod, dan Ideogram butuh akun sendiri (umumnya berbayar) dan API key, dan hanya dipakai bila Anda mengisi API key-nya dan alur memintanya. Narasi Edge TTS dan musik latar bawaan gratis tanpa API key. Edge TTS memakai layanan baca-keras Microsoft Edge secara online; untuk konten komersial, periksa ketentuan Microsoft atau pakai ElevenLabs.
 
 ## Ruang disk
 

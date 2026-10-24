@@ -21,6 +21,7 @@ const COMMANDS = {
   wait: (ops, v) => ops.waitRun(root, v.reason),
   fail: (ops, v) => ops.failRun(root, v.reason),
   status: (ops) => ops.statusRun(root),
+  audio: (ops) => ops.generateAudio(root),
   install: (ops) => ops.installDeps(root),
   render: (ops) => ops.renderVideo(root),
   stills: (ops, v) => ops.extractStills(root, v.count === undefined ? 4 : Number(v.count)),

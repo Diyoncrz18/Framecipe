@@ -1,5 +1,5 @@
 import { envStatus, readCatalog } from "@/core/catalog.mjs";
-import { MUSIC_KEYS, VOICE_PROVIDER_KEYS } from "@/core/flow-form.mjs";
+import { VOICE_PROVIDER_KEYS } from "@/core/flow-form.mjs";
 import type { EditorData } from "@/components/flow-editor/types";
 import { ROOT } from "@/lib/root";
 
@@ -11,7 +11,7 @@ export function loadEditorData(): EditorData {
   const c = readCatalog(ROOT);
   const onDisk = <T extends { source: string }>(items: T[]) => items.filter((i) => i.source !== "registry");
   const ids = (items: { id: string }[]) => items.map((i) => i.id);
-  const keys = [...new Set([...Object.values(VOICE_PROVIDER_KEYS).flat(), ...MUSIC_KEYS])];
+  const keys = [...new Set(Object.values(VOICE_PROVIDER_KEYS).flat())];
   return {
     templates: onDisk(c.templates).map(({ id, engine, aspectRatio, width, height }) => ({ id, engine, aspectRatio, width, height })),
     brands: onDisk(c.brands).map((b) => {
