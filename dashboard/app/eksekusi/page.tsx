@@ -22,7 +22,8 @@ export default function Page() {
 
   return (
     <div className="flex flex-col gap-6">
-      {runs.some((r) => isLive(r.displayStatus)) && <AutoRefresh intervalMs={2000} />}
+      {/* Always on: a run started from chat must show up within 2 s even when no run was live before (PRD 14 step 4). */}
+      <AutoRefresh intervalMs={2000} />
       <h1 className="text-2xl font-semibold">Eksekusi</h1>
 
       {runs.length === 0 ? (
