@@ -80,7 +80,7 @@ export const MuteByRole: React.FC = () => {
   const st = stageRect(true);
 
   return (
-    <Stage url="acme.digitalsamba.com/all-hands" camera={CAMERA} path={PATH} clicks={MUTE_CLICKS} aiNote>
+    <Stage url="acme.example.com/all-hands" camera={CAMERA} path={PATH} clicks={MUTE_CLICKS} aiNote>
       <RoomChrome activeTool="participants">
         <TileGrid tiles={tiles} {...st} cols={3} />
         <ParticipantsPanel sections={sectionsFor(muted, menuOpen > 0 || near(cur, dots, 20, 20))} />

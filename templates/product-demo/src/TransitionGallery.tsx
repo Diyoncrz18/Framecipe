@@ -257,7 +257,7 @@ const IntroSlide: React.FC = () => {
           fontWeight: 400,
         }}
       >
-        claude-code-video-toolkit
+        Framecipe
       </p>
     </AbsoluteFill>
   );

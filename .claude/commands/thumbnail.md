@@ -27,7 +27,7 @@ before writing the caption.
 If the user named a project, use it. Otherwise list candidates and ask:
 
 ```bash
-cd /path/to/claude-code-video-toolkit && ls projects/*/project.json
+cd /path/to/Framecipe && ls projects/*/project.json
 ```
 
 If `out/thumbnail.*` already exists, show it and ask whether to replace it or keep it.
@@ -78,7 +78,7 @@ Start from `examples.md` §2 (thumbnail) and keep these layout rules:
 ### Step 5: Generate
 
 ```bash
-cd /path/to/claude-code-video-toolkit && mkdir -p projects/NAME/out && \
+cd /path/to/Framecipe && mkdir -p projects/NAME/out && \
   uv run tools/ideogram4.py --json projects/NAME/thumbnail/caption.json \
   --resolution 1280x720 --speed QUALITY \
   --output projects/NAME/out/thumbnail.png --json-out
@@ -106,7 +106,7 @@ retry. Show the user the result and ask before spending on further retries.
 Then confirm it fits YouTube's limits (≤2MB, 1280×720):
 
 ```bash
-cd /path/to/claude-code-video-toolkit && uv run python -c "import sys,os; from PIL import Image; p=sys.argv[1]; print(Image.open(p).size, os.path.getsize(p)//1024, 'KB')" projects/NAME/out/thumbnail.png
+cd /path/to/Framecipe && uv run python -c "import sys,os; from PIL import Image; p=sys.argv[1]; print(Image.open(p).size, os.path.getsize(p)//1024, 'KB')" projects/NAME/out/thumbnail.png
 ```
 
 A flat 1280×720 graphic is usually 0.5–1MB. If it's over 2MB, convert it to JPEG and use

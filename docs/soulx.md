@@ -20,9 +20,9 @@ It ships in two variants, both served by the same endpoint:
 
 ## Demo
 
-[![SoulX-FlashHead talking head demo](../assets/readme-thumbs/soulx-talking-head.jpg)](https://demos.digitalsamba.com/video/soulx-talking-head.mp4)
+![SoulX-FlashHead talking head demo](../assets/readme-thumbs/soulx-talking-head.jpg)
 
-**[80 seconds from a single still](https://demos.digitalsamba.com/video/soulx-talking-head.mp4)**
+**80 seconds from a single still**
 — one 1024x1024 photo and an audio track, no video input, rendered at 640x640
 in one pass.
 

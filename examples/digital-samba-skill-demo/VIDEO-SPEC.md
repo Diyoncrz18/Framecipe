@@ -99,8 +99,8 @@
 ### Scene 10: CTA + Credits (2:22 - 2:30) [240 frames]
 **Visual**: Digital Samba logo, GitHub link, call to action
 **Text**:
-- "Get the skill: github.com/digitalsamba/digital-samba-skill"
-- "Start building: digitalsamba.com"
+- "Get the skill: github.com/your-org/digital-samba-skill"
+- "Start building: example.com"
 **Animation**: Fade in, hold, fade out
 
 ---

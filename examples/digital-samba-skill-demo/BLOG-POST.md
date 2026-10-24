@@ -30,13 +30,13 @@ The generated code follows best practices - secure JWT token generation, proper 
 **Claude Code (CLI)**
 
 ```bash
-git clone https://github.com/digitalsamba/digital-samba-skill.git
+git clone https://github.com/your-org/digital-samba-skill.git
 cp -r digital-samba-skill/.claude/skills/digital-samba your-project/.claude/skills/
 ```
 
 **Claude Desktop / Claude.ai**
 
-1. Download the [latest release ZIP](https://github.com/digitalsamba/digital-samba-skill/releases/latest)
+1. Download the latest release ZIP
 2. Go to Settings → Skills
 3. Click "Add custom skill" and upload the ZIP
 
@@ -44,7 +44,7 @@ cp -r digital-samba-skill/.claude/skills/digital-samba your-project/.claude/skil
 
 The Digital Samba skill is on GitHub. Go give it a try.
 
-[View on GitHub](https://github.com/digitalsamba/digital-samba-skill) | [Digital Samba Documentation](https://developer.digitalsamba.com)
+View on GitHub | Digital Samba Documentation
 
 ---
 

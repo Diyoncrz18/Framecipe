@@ -61,7 +61,7 @@ export const Breakout: React.FC = () => {
   const st = stageRect(false);
 
   return (
-    <Stage url="acme.digitalsamba.com/all-hands" camera={CAMERA} path={PATH} clicks={BREAKOUT_CLICKS} aiNote>
+    <Stage url="acme.example.com/all-hands" camera={CAMERA} path={PATH} clicks={BREAKOUT_CLICKS} aiNote>
       <RoomChrome roomName="Breakout room 2" micOff={!joined} camOff={!joined}>
         <TileGrid tiles={tiles} {...st} cols={2} />
         {modal > 0 && (

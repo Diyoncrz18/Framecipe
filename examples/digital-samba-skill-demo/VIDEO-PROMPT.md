@@ -52,7 +52,7 @@ Create a Remotion video composition for the Digital Samba Skill demo. This is a 
 
 7. **Summary Stats** (7s) - Animated cards: "Minutes to working app", "Zero infrastructure", "Full SDK control"
 
-8. **CTA** (8s) - "Get the skill: github.com/digitalsamba/digital-samba-skill" + DS logo
+8. **CTA** (8s) - "Get the skill: github.com/your-org/digital-samba-skill" + DS logo
 
 ### Voiceover Script
 See `VOICEOVER-SCRIPT.md` for full timed narration. Key addition:

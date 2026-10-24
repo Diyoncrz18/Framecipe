@@ -1,5 +1,5 @@
 {
-  "name": "claude-code-video-toolkit",
+  "name": "Framecipe",
   "version": "0.21.1",
   "description": "AI-native video production workspace for Claude Code",
   "repository": "https://github.com/Diyoncrz18/Framecipe",
@@ -1321,7 +1321,6 @@
       "description": "AI-generated video essay — flux2 avatar, Qwen3-TTS voice, SadTalker animation (finished video only — no source directory in examples/)",
       "template": "custom",
       "complexity": "advanced",
-      "demo": "https://demos.digitalsamba.com/video/the-space-between.mp4",
       "created": "2026-03-15",
       "showcaseOnly": true
     },
@@ -1355,7 +1354,6 @@
       "template": "concept-explainer-short",
       "stack": "python-moviepy",
       "complexity": "intermediate",
-      "demo": "https://demos.digitalsamba.com/video/short-blue-sky.mp4",
       "created": "2026-06-10"
     },
     "ds-release-649": {
@@ -1365,7 +1363,6 @@
       "stack": "remotion",
       "complexity": "advanced",
       "contributor": "Digital Samba",
-      "demo": "https://demos.digitalsamba.com/video/ds-release-649.mp4",
       "created": "2026-10-21"
     },
     "ds-free-schedule-demo": {
@@ -1375,7 +1372,6 @@
       "stack": "remotion",
       "complexity": "intermediate",
       "contributor": "Digital Samba",
-      "demo": "https://demos.digitalsamba.com/video/ds-free-schedule-demo.mp4",
       "created": "2026-10-21"
     }
   },

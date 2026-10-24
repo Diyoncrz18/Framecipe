@@ -1,4 +1,4 @@
-# Contributing to claude-code-video-toolkit
+# Contributing to Framecipe
 
 This toolkit is designed to grow through use. Every interaction is an opportunity to improve.
 

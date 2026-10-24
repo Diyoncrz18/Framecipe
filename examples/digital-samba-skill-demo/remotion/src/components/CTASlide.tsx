@@ -139,7 +139,7 @@ export const CTASlide: React.FC = () => {
                   fontFamily: "JetBrains Mono, monospace",
                 }}
               >
-                github.com/digitalsamba/digital-samba-skill
+                github.com/your-org/digital-samba-skill
               </div>
             </div>
           </div>
@@ -183,7 +183,7 @@ export const CTASlide: React.FC = () => {
                   fontFamily: "JetBrains Mono, monospace",
                 }}
               >
-                digitalsamba.com
+                example.com
               </div>
             </div>
           </div>

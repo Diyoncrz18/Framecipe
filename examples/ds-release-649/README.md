@@ -1,9 +1,8 @@
 # ds-release-649: a synthetic release-notes video
 
-An 80s video for [Digital Samba release 649](https://www.digitalsamba.com/release-notes/release-649). It covers five
+An 80s video for Digital Samba release 649. It covers five
 new features, one fix and a Digital Samba Free roundup.
 
-**Watch:** https://demos.digitalsamba.com/video/ds-release-649.mp4
 
 **Nothing in it is screen-recorded.** Claude Code read the product repos and rebuilt the screens it needed as static
 React: the in-call room, the embedded dashboard's settings, and the DS Free account center. A scripted cursor and

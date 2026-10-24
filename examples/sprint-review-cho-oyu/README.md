@@ -2,11 +2,10 @@
 
 Internal sprint review video for Digital Samba Mobile iOS v4.0.2, demonstrating bug fixes and improvements.
 
-> Contributed by [Digital Samba](https://digitalsamba.com)
+> Contributed by Digital Samba
 
 ## Watch the Finished Video
 
-**[Download MP4](https://demos.digitalsamba.com/video/sprint-review.mp4)**
 
 *See the finished result before you start!*
 
@@ -120,4 +119,4 @@ Large media files are not included. See `ASSETS-NEEDED.md` for:
 
 ---
 
-*Contributed by [Digital Samba](https://digitalsamba.com) - European video conferencing API*
+*Contributed by Digital Samba - European video conferencing API*

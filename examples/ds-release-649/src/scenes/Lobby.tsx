@@ -61,7 +61,7 @@ export const Lobby: React.FC = () => {
   const tiles = (admitted ? PEOPLE : inRoom).map((person) => ({ person, camOff: person.you, speaking: person.id === 'matthias' }));
 
   return (
-    <Stage url="acme.digitalsamba.com/all-hands" camera={CAMERA} path={PATH} clicks={LOBBY_CLICKS} aiNote>
+    <Stage url="acme.example.com/all-hands" camera={CAMERA} path={PATH} clicks={LOBBY_CLICKS} aiNote>
       <RoomChrome activeTool="participants">
         <TileGrid tiles={tiles} {...stageRect(true)} cols={3} />
         <ParticipantsPanel sections={sections(admitted, menu > 0 || near(cur, dots, 20, 20))} />

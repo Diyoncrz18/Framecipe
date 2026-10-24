@@ -23,7 +23,7 @@ project.json + rendered MP4 → metadata draft → dry-run → upload → write 
 If the user named a project, use it. Otherwise scan for candidates:
 
 ```bash
-cd /path/to/claude-code-video-toolkit && ls projects/*/project.json
+cd /path/to/Framecipe && ls projects/*/project.json
 ```
 
 Read the chosen `project.json` **defensively** — real files carry `render`, `format`,
@@ -54,7 +54,7 @@ editable, and re-runnable. If a `publish` block already exists, use it as defaul
 ### Step 3: Dry-run first (no upload)
 
 ```bash
-cd /path/to/claude-code-video-toolkit && uv run tools/youtube_upload.py \
+cd /path/to/Framecipe && uv run tools/youtube_upload.py \
   --video "projects/NAME/out/video.mp4" \
   --title "TITLE" \
   --description-file "projects/NAME/.publish-description.txt" \

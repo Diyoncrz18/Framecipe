@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide will help you create your first video using the claude-code-video-toolkit.
+This guide will help you create your first video using the Framecipe.
 
 ## Prerequisites
 

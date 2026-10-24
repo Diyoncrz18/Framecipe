@@ -1,6 +1,6 @@
 # Toolkit Backlog
 
-Ideas and enhancements for claude-code-video-toolkit. Items here are **not yet scheduled** - they're captured for future consideration.
+Ideas and enhancements for Framecipe. Items here are **not yet scheduled** - they're captured for future consideration.
 
 > **Note:** When an item is implemented, remove it from this file and add the change to `CHANGELOG.md`.
 
@@ -194,7 +194,7 @@ Cloudflare R2 usage for dewatermark tool:
 ### Docker Package Namespace
 Move GPU worker images from personal to org namespace:
 - Currently: `ghcr.io/conalmullan/video-toolkit-*`
-- Target: `ghcr.io/digitalsamba/video-toolkit-*`
+- Target: `ghcr.io/diyoncrz18/video-toolkit-*`
 - Add OCI labels to Dockerfiles for auto-linking
 - Update CLAUDE.md and docs references
 - Packages: qwen-edit, realesrgan, propainter (+ animate, wan-i2v if used)

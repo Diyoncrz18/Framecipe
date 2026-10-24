@@ -30,7 +30,7 @@ const Code: React.FC<{ frame: number }> = ({ frame }) => {
   return (
     <div style={{ fontFamily: MONO, fontSize: 25, color: K.tx, lineHeight: '40px' }}>
       {L(1, <><span style={{ color: K.kw }}>const</span> sambaFrame = DigitalSambaEmbedded.<span style={{ color: K.fn }}>createControl</span>({'{'}</>)}
-      {L(2, <>&nbsp;&nbsp;url: <span style={{ color: K.str }}>'https://acme.digitalsamba.com/all-hands'</span>,</>)}
+      {L(2, <>&nbsp;&nbsp;url: <span style={{ color: K.str }}>'https://acme.example.com/all-hands'</span>,</>)}
       {L(3, <>{'}'});</>)}
       {L(4, <>sambaFrame.<span style={{ color: K.fn }}>load</span>();</>)}
       {L(5, '')}

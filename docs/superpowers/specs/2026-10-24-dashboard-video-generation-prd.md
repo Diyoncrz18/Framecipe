@@ -5,7 +5,7 @@
 | Versi | 0.3, sudah ditinjau reviewer independen dan memuat jawaban Q1, Q3, Q4 |
 | Tanggal | 24 Oktober 2026 |
 | Pemilik | Diyoncrz18 (pemilik repo) |
-| Repo | `C:\MY FOLDER\VIDEO-GENERATION\claude-code-video-toolkit` |
+| Repo | `github.com/Diyoncrz18/Framecipe` |
 | Status | Menunggu persetujuan. Setelah disetujui, lanjut ke rencana implementasi rinci. |
 
 Prioritas di dokumen ini: **P0** wajib untuk MVP, **P1** setelah MVP, **P2** nanti.
@@ -14,7 +14,7 @@ Prioritas di dokumen ini: **P0** wajib untuk MVP, **P1** setelah MVP, **P2** nan
 
 ## 1. Ringkasan
 
-Sebuah dashboard web yang berjalan di laptop, dibangun di atas claude-code-video-toolkit. Di dashboard Anda:
+Sebuah dashboard web yang berjalan di laptop, dibangun di atas Framecipe. Di dashboard Anda:
 
 1. menyusun **alur**, yaitu resep video yang bisa dipakai ulang (template, brand, format, susunan scene, gaya bahasa, audio, referensi desain, skill);
 2. memesan video dari sebuah alur dengan topik tertentu;
@@ -380,7 +380,7 @@ Pemutar video, tombol unduh, metadata, naskah, tabel scene, daftar versi, dan ri
 ### 9.1 Struktur folder
 
 ```
-claude-code-video-toolkit/
+Framecipe/
 ├── dashboard/                      BARU  aplikasi Next.js
 │   ├── bin/run.mjs                 BARU  helper run (start/stage/wait/finish/fail)
 │   ├── bin/hook.mjs                BARU  pencatat event dari hook, tanpa dependensi
