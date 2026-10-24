@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { CopyButton } from "@/components/copy-button";
+import { CreateVideoForm } from "@/components/create-video-form";
 import { CoreChecks, Mark } from "@/components/health-checks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { VideoCard } from "@/components/video-card";
 import { checkHealth } from "@/core/health.mjs";
 import { listProjects } from "@/core/projects.mjs";
 import { flowName } from "@/lib/flow-name";
+import { loadFlowOptions } from "@/lib/flow-options";
 import { ROOT } from "@/lib/root";
 
 export default function Home() {
@@ -15,6 +17,11 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-8">
       <h1 className="text-2xl font-semibold">Beranda</h1>
+
+      <Card>
+        <CardHeader><CardTitle><h2>Buat video</h2></CardTitle></CardHeader>
+        <CardContent><CreateVideoForm flows={loadFlowOptions()} /></CardContent>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>

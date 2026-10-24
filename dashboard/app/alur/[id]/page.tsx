@@ -1,9 +1,12 @@
 import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CreateVideoForm } from "@/components/create-video-form";
 import { ArchiveButton } from "@/components/flow-editor/archive-button";
 import { FlowForm } from "@/components/flow-editor/flow-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { readFlow } from "@/core/flows.mjs";
+import { loadFlowOptions } from "@/lib/flow-options";
 import { ROOT } from "@/lib/root";
 import { loadEditorData } from "../editor-data";
 
@@ -39,6 +42,10 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         <h1 className="text-2xl font-semibold">Ubah alur</h1>
         <p className="text-sm text-muted-foreground">{typeof flow.name === "string" && flow.name ? flow.name : id}</p>
       </div>
+      <Card className="max-w-3xl">
+        <CardHeader><CardTitle><h2 className="text-lg">Buat video</h2></CardTitle></CardHeader>
+        <CardContent><CreateVideoForm key={id} flows={loadFlowOptions()} defaultFlow={id} /></CardContent>
+      </Card>
       {/* key: a different flow or version is a new form, not an edit of the old state */}
       <FlowForm key={`${id}@${version}`} mode="update" initial={flow} folderId={id} data={loadEditorData()} version={version} initialErrors={r.errors} />
     </div>
