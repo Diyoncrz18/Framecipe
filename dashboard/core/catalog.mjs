@@ -152,6 +152,16 @@ function buildItems(root, reg, registryOk, { conv, scan, extra }) {
   });
 }
 
+/** @typedef {{ id: string, description: string, status: string | null, path: string | null, source: 'registry' | 'folder' | 'both', mismatch: 'missing-folder' | 'unregistered' | null,
+ *   envVars: string[], requires: string | null, options: unknown, bestFor: string | null }} CatalogItem */
+/** @typedef {CatalogItem & { skillName: string }} SkillItem */
+/** @typedef {CatalogItem & { engine: 'remotion' | 'python', aspectRatio: string, width: number | null, height: number | null }} TemplateItem */
+/** @typedef {CatalogItem & { template: string | null, complexity: string | null, renderedVideo: string | null }} ExampleItem */
+/** @typedef {CatalogItem & { brand: Record<string, unknown> | null, corrupt: boolean, logo: string | null }} BrandItem */
+/** @typedef {{ registryError: string | null, skills: SkillItem[], commands: CatalogItem[], tools: CatalogItem[], templates: TemplateItem[], examples: ExampleItem[],
+ *   transitions: CatalogItem[], components: CatalogItem[], brands: BrandItem[], cloudProviders: CatalogItem[] }} Catalog */
+
+/** @returns {Catalog} */
 export function readCatalog(root) {
   const r = readJson(inside(root, ...REGISTRY.split('/')) ?? '');
   const problem = !r.ok ? (r.error === 'missing' ? 'tidak ditemukan' : `rusak (${r.message})`) : !isObj(r.value) ? 'rusak (bukan objek JSON)' : null;
@@ -175,6 +185,7 @@ export function repoContextForValidation(root) {
 }
 
 // Reads only <root>/.env. Values never leave this function, only whether a key has one.
+/** @param {string} root @param {string[]} keys @returns {{ key: string, present: boolean }[]} */
 export function envStatus(root, keys) {
   const filled = new Set();
   for (const line of readText(root, '.env').split(/\r?\n/)) {
@@ -186,6 +197,7 @@ export function envStatus(root, keys) {
   return keys.map((key) => ({ key, present: filled.has(key) }));
 }
 
+/** @param {Catalog} catalog @returns {string[]} */
 export function allEnvKeys(catalog) {
   return [...new Set([...catalog.tools, ...catalog.cloudProviders].flatMap((i) => i.envVars))].sort();
 }

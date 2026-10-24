@@ -1,3 +1,150 @@
-export default function Page() {
-  return <h1 className="text-2xl font-semibold">Referensi Desain</h1>;
+import Link from "next/link";
+import { BrandPreview } from "@/components/brand-preview";
+import { CopyButton } from "@/components/copy-button";
+import { MismatchBadge } from "@/components/mismatch-badge";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { readCatalog, type Catalog } from "@/core/catalog.mjs";
+import { mediaUrl } from "@/lib/media";
+import { ROOT } from "@/lib/root";
+
+const TABS = [
+  { id: "contoh", label: "Contoh" },
+  { id: "template", label: "Template" },
+  { id: "brand", label: "Brand" },
+  { id: "transisi", label: "Transisi" },
+  { id: "komponen", label: "Komponen" },
+];
+const DASH = "—";
+const GRID = "grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(20rem,1fr))]";
+const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+
+function Item({ title, description, badges, children }: { title: string; description?: string; badges?: React.ReactNode; children?: React.ReactNode }) {
+  return (
+    <li className="grid">
+      <Card>
+        <CardHeader>
+          <CardTitle className="break-words">{title}</CardTitle>
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {badges && <div className="flex flex-wrap items-center gap-1.5">{badges}</div>}
+          {children}
+        </CardContent>
+      </Card>
+    </li>
+  );
+}
+
+function Examples({ items }: { items: Catalog["examples"] }) {
+  return items.map((e) => (
+    <Item
+      key={e.id}
+      title={e.id}
+      description={e.description}
+      badges={<>
+        <Badge variant="secondary">Template: {e.template ?? DASH}</Badge>
+        <Badge variant="outline">Kompleksitas: {e.complexity ?? DASH}</Badge>
+        <MismatchBadge mismatch={e.mismatch} />
+      </>}
+    >
+      {e.renderedVideo ? (
+        <video src={mediaUrl(e.renderedVideo)} controls preload="metadata" aria-label={`Video contoh ${e.id}`} className="aspect-video w-full bg-muted" />
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-muted-foreground">Belum di-render</span>
+          <CopyButton text={`cd examples/${e.id} && npm install && npm run render`} />
+        </div>
+      )}
+    </Item>
+  ));
+}
+
+function Templates({ items }: { items: Catalog["templates"] }) {
+  return items.map((t) => (
+    <Item
+      key={t.id}
+      title={t.id}
+      description={t.description}
+      badges={<>
+        <Badge variant="outline">Status: {t.status ?? DASH}</Badge>
+        <Badge variant="secondary">{t.engine === "remotion" ? "Remotion" : "Python"}</Badge>
+        {t.engine !== "remotion" && <Badge variant="outline" className="border-transparent bg-amber-100 text-amber-900">Belum bisa dipakai di alur v1</Badge>}
+      </>}
+    >
+      <p className="text-sm">
+        Rasio {t.aspectRatio === "unknown" ? DASH : t.aspectRatio} · {t.width && t.height ? `${t.width}×${t.height}` : DASH}
+      </p>
+    </Item>
+  ));
+}
+
+function Brands({ items }: { items: Catalog["brands"] }) {
+  // A broken brand.json shows as its own item; the other brands are unaffected (NFR-07).
+  return items.map((b) =>
+    b.brand ? (
+      <Item key={b.id} title={typeof b.brand.name === "string" ? b.brand.name : b.id} description={b.description}>
+        <BrandPreview name={b.id} brand={b.brand} logo={b.logo} />
+      </Item>
+    ) : (
+      <Item key={b.id} title={b.corrupt ? "Data rusak" : b.id} description={`Folder: brands/${b.id}`} />
+    ),
+  );
+}
+
+function Transitions({ items }: { items: Catalog["transitions"] }) {
+  return items.map((t) => (
+    <Item key={t.id} title={t.id} description={t.description}>
+      <dl className="flex flex-col gap-1 text-sm">
+        <div><dt className="inline font-medium">Opsi: </dt><dd className="inline">{Array.isArray(t.options) && t.options.length ? t.options.join(", ") : DASH}</dd></div>
+        <div><dt className="inline font-medium">Cocok untuk: </dt><dd className="inline">{t.bestFor ?? DASH}</dd></div>
+      </dl>
+    </Item>
+  ));
+}
+
+function Components({ items }: { items: Catalog["components"] }) {
+  return items.map((c) => (
+    <Item key={c.id} title={c.id} description={c.description}>
+      <p className="break-all font-mono text-xs text-muted-foreground">{c.path}</p>
+    </Item>
+  ));
+}
+
+export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const sp = await searchParams;
+  const requested = first(sp.tab);
+  const tab = TABS.some((t) => t.id === requested) ? requested : "contoh";
+  const catalog = readCatalog(ROOT);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <h1 className="text-2xl font-semibold">Referensi Desain</h1>
+      {catalog.registryError && <p role="alert" className="text-sm text-destructive">Registry bermasalah: {catalog.registryError}</p>}
+
+      <nav aria-label="Jenis referensi">
+        <ul className="flex flex-wrap gap-1">
+          {TABS.map((t) => (
+            <li key={t.id}>
+              <Link
+                href={`/referensi?tab=${t.id}`}
+                aria-current={t.id === tab ? "page" : undefined}
+                className="block rounded-md px-3 py-1.5 text-sm outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:bg-muted aria-[current=page]:font-semibold"
+              >
+                {t.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <ul className={GRID}>
+        {tab === "contoh" && <Examples items={catalog.examples} />}
+        {tab === "template" && <Templates items={catalog.templates} />}
+        {tab === "brand" && <Brands items={catalog.brands} />}
+        {tab === "transisi" && <Transitions items={catalog.transitions} />}
+        {tab === "komponen" && <Components items={catalog.components} />}
+      </ul>
+    </div>
+  );
 }
