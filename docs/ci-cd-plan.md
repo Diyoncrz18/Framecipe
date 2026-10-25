@@ -69,7 +69,7 @@ Kenapa Windows ikut: pemilik memakai Windows 11 dengan checkout CRLF (runner Win
 Batas yang diketahui:
 
 - Lint masih punya 1 warning lama (`dashboard/core/run-render.test.mjs:117`). ESLint tetap exit 0, jadi belum digerbang; lihat fase 2.
-- Cek "nol warning" pada build memakai `grep` kata `warn`/`⚠` di output `next build`. Kasar tapi cukup; kalau suatu saat output normal Next memuat kata itu, polanya perlu dipersempit.
+- Cek "nol warning" pada build memakai `grep` kata `warn`/`⚠` di output `next build`. Kasar tapi cukup; kalau suatu saat output normal Next memuat kata itu, polanya perlu dipersempit. Satu baris sengaja dikecualikan: `⚠ No build cache found`, yang selalu muncul di runner baru karena belum ada `.next/cache` (run pertama 2026-10-25 gagal karena baris ini). Menyimpan `.next/cache` dengan `actions/cache` akan mempercepat build, tapi baris itu tetap muncul setiap cache meleset, jadi pengecualiannya tetap perlu.
 - `py_compile` hanya menangkap error sintaks, bukan error impor atau logika. Nama tak terdefinisi ditangkap `lint-python.yml`.
 
 Selesai bila keempat job hijau di GitHub pada push pertama.

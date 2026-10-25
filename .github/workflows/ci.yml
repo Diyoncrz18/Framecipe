@@ -49,7 +49,8 @@ jobs:
       - name: npm run build (zero warnings)
         run: |
           npm run build 2>&1 | tee build.log
-          if grep -inE 'warn|⚠' build.log; then
+          # A fresh runner has no .next/cache, so Next always prints "No build cache found" there; it is not a code warning.
+          if grep -inE 'warn|⚠' build.log | grep -v 'No build cache found'; then
             echo "::error::next build printed a warning; AGENTS.md requires a warning-free build"
             exit 1
           fi
