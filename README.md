@@ -10,8 +10,6 @@ Framecipe turns a written recipe into a finished video. You define the recipe on
 ![Remotion 4](https://img.shields.io/badge/Remotion-4-0B84F3)
 ![Runs locally](https://img.shields.io/badge/runs-locally-555555)
 
-![Framecipe home: create a video, check system health, and see the latest renders](docs/images/framecipe-home.png)
-
 ---
 
 ## Contents
@@ -53,19 +51,6 @@ Most AI video tools give you a different result every time you ask. Framecipe us
 | **Skills and tools catalog** | See every Claude skill, command and Python tool in the workspace, how often each was used, when it was last used, and which recipes list it. |
 | **Health and settings** | Check that Node, npm, uv and Claude Code are installed and that the hooks and command are in place. API keys are reported only as set or unset. Their values are never shown. |
 | **Built-in safeguards** | Only one run is active at a time. A run with no activity for 15 minutes is detected as stalled. A video is only marked successful after its file is validated, so a failed render can never show up as a success. |
-
-<table>
-  <tr>
-    <td width="50%"><img src="docs/images/framecipe-recipe-editor.png" alt="Recipe editor with template, brand, output format and scene timeline"></td>
-    <td width="50%"><img src="docs/images/framecipe-gallery.png" alt="Video gallery filtered to successful renders"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Recipe editor</b>: template, brand, format and scene timeline</td>
-    <td align="center"><b>Gallery</b>: every finished video, filterable by recipe and status</td>
-  </tr>
-</table>
-
-![Execution detail showing each pipeline stage with its status and duration](docs/images/framecipe-run-pipeline.png)
 
 ## How it works
 
