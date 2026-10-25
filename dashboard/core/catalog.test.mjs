@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, it } from 'vitest';
-import { allEnvKeys, envStatus, readCatalog, repoContextForValidation, templateInfo } from './catalog.mjs';
-import { makeFixtureRepo } from './test-utils.mjs';
+import { allEnvKeys, envStatus, readCatalog, readGlobalSkills, readiness, repoContextForValidation, templateInfo } from './catalog.mjs';
+import { makeFixtureRepo, makeTempRoot } from './test-utils.mjs';
 
 const realRoot = path.resolve(import.meta.dirname, '..', '..');
 
@@ -26,6 +26,76 @@ it('skillName: nama frontmatter, atau id folder bila tidak ada', () => {
   const c = readCatalog(root);
   expect(c.skills.map(s => [s.id, s.skillName])).toEqual([['bar', 'bar'], ['baz', 'baz-invoked'], ['foo', 'foo'], ['ghost', 'ghost']]);
 });
+it('deskripsi multi-baris (description: >) digabung dengan spasi', () => {
+  const root = makeFixtureRepo();
+  fs.mkdirSync(path.join(root, '.claude', 'skills', 'multi'));
+  // CRLF like a Windows checkout; a blank line inside the block and the nested metadata key must not break description.
+  fs.writeFileSync(path.join(root, '.claude', 'skills', 'multi', 'SKILL.md'),
+    ['---', 'name: multi', 'description: >', '  Baris satu,', '', '  baris dua.', 'metadata:', '  type: x', '---', ''].join('\r\n'));
+  fs.writeFileSync(path.join(root, '.claude', 'skills', 'bar', 'SKILL.md'), ['---', 'description: "Satu', '  dua"', '---', ''].join('\n'));
+  const c = readCatalog(root);
+  expect(c.skills.find(s => s.id === 'multi').description).toBe('Baris satu, baris dua.');
+  expect(c.skills.find(s => s.id === 'bar').description).toBe('Satu dua');
+});
+it('tool hanya skrip dengan __main__; modul pembantu tidak ikut', () => {
+  const root = makeFixtureRepo();
+  fs.mkdirSync(path.join(root, 'tools'));
+  for (const f of ['voiceover.py', 'cutdown.py']) fs.writeFileSync(path.join(root, 'tools', f), 'if __name__ == "__main__": main()');
+  for (const f of ['__init__.py', 'config.py']) fs.writeFileSync(path.join(root, 'tools', f), 'X = 1');
+  expect(readCatalog(root).tools.map(t => [t.id, t.source])).toEqual([['cutdown', 'folder'], ['voiceover', 'both']]);
+});
+it('readiness: siap, sebagian, perlu key, perlu prasyarat, folder hilang', () => {
+  const item = (o) => ({ envVars: [], requires: null, mismatch: null, ...o });
+  const filled = new Set(['A']);
+  expect(readiness(item({}), filled)).toBe('ready');
+  expect(readiness(item({ envVars: ['A'] }), filled)).toBe('ready');
+  expect(readiness(item({ envVars: ['A', 'B'] }), filled)).toBe('partial');
+  expect(readiness(item({ envVars: ['B'], requires: 'Modal' }), filled)).toBe('needs-key');
+  expect(readiness(item({ requires: 'ffmpeg' }), filled)).toBe('needs-setup');
+  expect(readiness(item({ mismatch: 'missing-folder' }), filled)).toBe('missing');
+});
+it('readGlobalSkills: skill pengguna dan plugin aktif, tanpa keluar dari folder Claude', () => {
+  const dir = makeTempRoot();
+  const write = (rel, text) => { const p = path.join(dir, ...rel.split('/')); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, text); };
+  const skill = (...lines) => ['---', ...lines, '---', ''].join('\n');
+  write('skills/mine/SKILL.md', skill('name: mine', 'description: Milik saya'));
+  write('skills/empty/README.md', 'bukan skill');
+  write('plugins/cache/m/hf/1.0/skills/hyperframes/SKILL.md', skill('name: hyperframes', 'description: >', '  Tulis HTML,', '  render video.'));
+  write('plugins/cache/m/off/1.0/skills/x/SKILL.md', skill('name: x'));
+  // plugin.json "skills": one skill folder, one folder of skills, and a path back into the default skills/ (no duplicate).
+  write('plugins/cache/m/hf/1.0/.claude-plugin/plugin.json', JSON.stringify({ skills: ['./skills/eng/tdd', './extra', './skills/hyperframes', 5] }));
+  write('plugins/cache/m/hf/1.0/skills/eng/tdd/SKILL.md', skill('name: tdd'));
+  write('plugins/cache/m/hf/1.0/extra/grill/SKILL.md', skill('name: grill'));
+  const outside = makeTempRoot();
+  fs.mkdirSync(path.join(outside, 'skills', 'evil'), { recursive: true });
+  fs.writeFileSync(path.join(outside, 'skills', 'evil', 'SKILL.md'), skill('name: evil'));
+  // A user skill linked in from elsewhere is read (its SKILL.md only); a dangling link and a linked non-skill folder are not.
+  fs.mkdirSync(path.join(outside, 'agents', 'linked'), { recursive: true });
+  fs.writeFileSync(path.join(outside, 'agents', 'linked', 'SKILL.md'), skill('name: linked', 'description: Lewat tautan'));
+  fs.mkdirSync(path.join(outside, 'agents', 'plain'));
+  fs.mkdirSync(path.join(outside, 'agents', 'gone'));
+  for (const name of ['linked', 'plain', 'gone']) fs.symlinkSync(path.join(outside, 'agents', name), path.join(dir, 'skills', name), 'junction');
+  fs.rmdirSync(path.join(outside, 'agents', 'gone'));
+  const user = (p) => [{ scope: 'user', installPath: p }];
+  write('plugins/installed_plugins.json', JSON.stringify({ version: 2, plugins: {
+    'hf@m': user(path.join(dir, 'plugins', 'cache', 'm', 'hf', '1.0')),
+    'off@m': user(path.join(dir, 'plugins', 'cache', 'm', 'off', '1.0')),
+    'evil@m': user(outside),
+    'proj@m': [{ scope: 'project', installPath: path.join(dir, 'plugins', 'cache', 'm', 'hf', '1.0') }],
+  } }));
+  write('settings.json', JSON.stringify({ enabledPlugins: { 'hf@m': true, 'off@m': false, 'evil@m': true, 'proj@m': true } }));
+  expect(readGlobalSkills(dir)).toEqual({ error: null, skills: [
+    { id: 'linked', skillName: 'linked', description: 'Lewat tautan', plugin: null },
+    { id: 'mine', skillName: 'mine', description: 'Milik saya', plugin: null },
+    { id: 'hyperframes', skillName: 'hf:hyperframes', description: 'Tulis HTML, render video.', plugin: 'hf' },
+    { id: 'tdd', skillName: 'hf:tdd', description: '', plugin: 'hf' },
+    { id: 'grill', skillName: 'hf:grill', description: '', plugin: 'hf' },
+  ] });
+
+  write('plugins/installed_plugins.json', '{');
+  expect(readGlobalSkills(dir)).toMatchObject({ error: expect.stringContaining('installed_plugins.json'), skills: [{ id: 'linked' }, { id: 'mine' }] });
+  expect(readGlobalSkills(path.join(dir, 'tidak-ada'))).toEqual({ error: null, skills: [] });
+});
 it('registry rusak tidak menjatuhkan katalog', () => {
   const root = makeFixtureRepo(); fs.writeFileSync(path.join(root, '_internal', 'toolkit-registry.json'), '{');
   const c = readCatalog(root);
@@ -37,6 +107,10 @@ it('envStatus hanya melaporkan terisi atau kosong', () => {
   expect(envStatus(root, ['ELEVENLABS_API_KEY', 'RUNPOD_API_KEY', 'IDEOGRAM_API_KEY'])).toEqual([
     { key: 'ELEVENLABS_API_KEY', present: true }, { key: 'RUNPOD_API_KEY', present: false }, { key: 'IDEOGRAM_API_KEY', present: false }]);
   expect(allEnvKeys(readCatalog(root))).toEqual(['ELEVENLABS_API_KEY', 'RUNPOD_API_KEY']);
+  const regFile = path.join(root, '_internal', 'toolkit-registry.json');
+  const reg = JSON.parse(fs.readFileSync(regFile, 'utf8')); reg.skills.foo.envVars = ['IDEOGRAM_API_KEY'];
+  fs.writeFileSync(regFile, JSON.stringify(reg));
+  expect(allEnvKeys(readCatalog(root))).toEqual(['ELEVENLABS_API_KEY', 'IDEOGRAM_API_KEY', 'RUNPOD_API_KEY']); // skills count too
 });
 it('templateInfo: rasio, python tanpa konfigurasi, dan id yang tidak aman', () => {
   const root = makeFixtureRepo();

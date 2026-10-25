@@ -71,7 +71,7 @@ The dashboard never starts Claude by itself (a one-click "Generate" button is a 
 | `runs.mjs` | Effective display status, timeline, summary, skill usage, markRunFailed. |
 | `hook-events.mjs` | Claude Code hook payload → event line; binds a session to a run only on a successful `node … run.mjs start`. |
 | `projects.mjs` | projects/ for gallery and project pages. |
-| `catalog.mjs` | toolkit-registry.json merged with what is really on disk (skills, templates, brands, examples, tools). |
+| `catalog.mjs` | toolkit-registry.json merged with what is really on disk (skills, templates, brands, examples, tools); readiness per item; global skills from `~/.claude` (user skills and enabled plugins). |
 | `health.mjs` | Tool versions, hooks/command installed, API keys filled or empty (never values). |
 | `remotion.mjs` | Remotion CLI paths, render-script parsing, ffprobe through Remotion, shared Chrome. |
 | `http-range.mjs` | What /api/media serves: allowed roots, MIME, Range, download header. |
@@ -138,7 +138,7 @@ Each prints JSON on stdout; failures print `{"error":"<CODE>"}` and an Indonesia
 ## 6. Hard rules (do not break)
 
 1. Dashboard listens only on `127.0.0.1:3210`; `proxy.ts` rejects any other Host (DNS-rebinding guard).
-2. Every file access from UI and core goes through `resolveInside()` (rejects `..`, absolute paths, symlinks/junctions leaving the repo). The media route also checks the real path.
+2. Every file access from UI and core goes through `resolveInside()` (rejects `..`, absolute paths, symlinks/junctions leaving the repo). The media route also checks the real path. One exception: `readGlobalSkills()` (Skill & Tools page) reads, read-only, the SKILL.md frontmatter and plugin lists in Claude Code's folder (`~/.claude` or `CLAUDE_CONFIG_DIR`), still through `resolveInside()` with that folder as the root; a user skill linked in from elsewhere (`~/.claude/skills/x` → `~/.agents/skills/x`) has only its own `SKILL.md` read, with the link target as the root. Recipes can only list project skills.
 3. `.env` values never reach the browser; only filled/empty status.
 4. Child processes: argument arrays, no shell. Only exception: constant `--version` checks on Windows. **Text the user typed (topic, notes, prompts) never becomes a command argument**; write it to files instead.
 5. Markdown via react-markdown without rehype-raw.

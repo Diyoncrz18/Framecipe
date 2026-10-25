@@ -1,6 +1,7 @@
 // Toolkit catalog: _internal/toolkit-registry.json merged with what actually sits in the repo folders.
 // Never throws for a broken registry or brand.json; the problem is reported in the result (NFR-07).
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { readJson } from './jsonfile.mjs';
 import { resolveInside, toRepoRelative } from './paths.mjs';
@@ -31,14 +32,18 @@ function readText(root, ...segs) {
   try { return file ? fs.readFileSync(file, 'utf8') : ''; } catch { return ''; }
 }
 
-// shortcut: single-line `key: value` pairs only (every SKILL.md and command in the repo is); add a YAML parser if a multi-line description appears.
+// Top-level `key: value` pairs; indented lines continue the previous value (YAML `description: >` blocks, used by plugin skills)
+// and are joined with spaces. shortcut: no escapes or nested maps; add a YAML parser if a SKILL.md needs them.
 function frontmatter(root, ...segs) {
   const m = /^﻿?---\r?\n([\s\S]*?)\r?\n---/.exec(readText(root, ...segs));
   const out = {};
+  let key = null;
   for (const line of m ? m[1].split(/\r?\n/) : []) {
     const kv = /^([A-Za-z][\w-]*):\s*(.*?)\s*$/.exec(line);
-    if (kv) out[kv[1]] = kv[2].replace(/^(["'])(.*)\1$/, '$2');
+    if (kv) out[key = kv[1]] = /^[>|][-+]?$/.test(kv[2]) ? '' : kv[2];
+    else if (key && /^\s+\S/.test(line)) out[key] = `${out[key]} ${line.trim()}`.trimStart();
   }
+  for (const k of Object.keys(out)) out[k] = out[k].replace(/^(["'])(.*)\1$/, '$2');
   return out;
 }
 
@@ -111,8 +116,9 @@ const SECTIONS = {
   },
   tools: {
     conv: (id) => `tools/${id}.py`,
-    // `_` files (__init__.py) are package plumbing, not tools.
-    scan: (root) => new Map(fileNames(root, 'tools').filter((f) => f.endsWith('.py') && !f.startsWith('_')).map((f) => [f.slice(0, -3), { path: `tools/${f}` }])),
+    // A tool has a __main__ entry point; the other files (__init__.py, config.py, cloud_gpu.py, ...) are modules the tools import.
+    scan: (root) => new Map(fileNames(root, 'tools').filter((f) => f.endsWith('.py') && readText(root, 'tools', f).includes('__main__'))
+      .map((f) => [f.slice(0, -3), { path: `tools/${f}` }])),
   },
   templates: {
     conv: (id) => `templates/${id}`,
@@ -155,6 +161,8 @@ function buildItems(root, reg, registryOk, { conv, scan, extra }) {
       mismatch: f ? (r || !registryOk ? null : 'unregistered') : p && !exists(root, p) ? 'missing-folder' : null,
       envVars: Array.isArray(r?.envVars) ? r.envVars.filter((v) => typeof v === 'string') : [],
       requires: str(r?.requires),
+      category: str(r?.category),
+      usage: str(r?.usage),
       options: r?.options ?? null,
       bestFor: str(r?.bestFor),
       ...extra?.(f, r, id),
@@ -163,7 +171,7 @@ function buildItems(root, reg, registryOk, { conv, scan, extra }) {
 }
 
 /** @typedef {{ id: string, description: string, status: string | null, path: string | null, source: 'registry' | 'folder' | 'both', mismatch: 'missing-folder' | 'unregistered' | null,
- *   envVars: string[], requires: string | null, options: unknown, bestFor: string | null }} CatalogItem */
+ *   envVars: string[], requires: string | null, category: string | null, usage: string | null, options: unknown, bestFor: string | null }} CatalogItem */
 /** @typedef {CatalogItem & { skillName: string }} SkillItem */
 /** @typedef {CatalogItem & { engine: 'remotion' | 'python', aspectRatio: string, width: number | null, height: number | null }} TemplateItem */
 /** @typedef {CatalogItem & { template: string | null, complexity: string | null, renderedVideo: string | null }} ExampleItem */
@@ -209,5 +217,61 @@ export function envStatus(root, keys) {
 
 /** @param {Catalog} catalog @returns {string[]} */
 export function allEnvKeys(catalog) {
-  return [...new Set([...catalog.tools, ...catalog.cloudProviders].flatMap((i) => i.envVars))].sort();
+  return [...new Set([...catalog.skills, ...catalog.tools, ...catalog.cloudProviders].flatMap((i) => i.envVars))].sort();
+}
+
+// Readiness on the Skill page. Keys are only known as filled or empty, and `requires` (a Modal account, ffmpeg) is not checked,
+// so such an item says what it needs instead of claiming to be ready.
+/** @param {CatalogItem} item @param {Set<string>} filled keys that have a value @returns {'ready' | 'partial' | 'needs-key' | 'needs-setup' | 'missing'} */
+export function readiness(item, filled) {
+  if (item.mismatch === 'missing-folder') return 'missing';
+  const n = item.envVars.filter((k) => filled.has(k)).length;
+  if (item.envVars.length) return n === item.envVars.length ? 'ready' : n ? 'partial' : 'needs-key';
+  return item.requires ? 'needs-setup' : 'ready';
+}
+
+// Claude Code's own folder for user settings, skills and plugins; CLAUDE_CONFIG_DIR moves it, as in Claude Code.
+export const defaultClaudeDir = () => process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+
+/** @typedef {{ id: string, skillName: string, description: string, plugin: string | null }} GlobalSkill */
+
+// Skills Claude Code loads from outside the repo: <claudeDir>/skills and the skills of every enabled plugin, invoked as
+// "<plugin>:<skill>". Frontmatter only, read only, and through resolveInside with claudeDir as the root (AGENTS.md hard rule 2).
+// shortcut: user-scope plugin installs only; add project-scope ones (installed_plugins.json projectPath) if a project uses them.
+/** @param {string} claudeDir @returns {{ error: string | null, skills: GlobalSkill[] }} */
+export function readGlobalSkills(claudeDir) {
+  const isSkill = (...segs) => fileNames(claudeDir, ...segs).includes('SKILL.md');
+  const skillAt = (...segs) => {
+    const fm = frontmatter(claudeDir, ...segs, 'SKILL.md');
+    return { id: segs.at(-1), skillName: fm.name || segs.at(-1), description: fm.description || '' };
+  };
+  const skillsIn = (...segs) => dirNames(claudeDir, ...segs).filter((d) => isSkill(...segs, d)).sort().map((d) => skillAt(...segs, d));
+  // Installers link user skills in from elsewhere (~/.claude/skills/x -> ~/.agents/skills/x), which resolveInside rejects. Only the
+  // link target's own SKILL.md is read, guarded with that target as the root.
+  const linked = list(claudeDir, 'skills').filter((e) => e.isSymbolicLink()).flatMap((e) => {
+    let target;
+    try { target = fs.realpathSync.native(/*turbopackIgnore: true*/ path.join(e.parentPath, e.name)); } catch { return []; } // dangling link
+    if (!fileNames(target).includes('SKILL.md')) return [];
+    const fm = frontmatter(target, 'SKILL.md');
+    return [{ id: e.name, skillName: fm.name || e.name, description: fm.description || '' }];
+  });
+  const skills = [...skillsIn('skills'), ...linked].sort((a, b) => (a.id < b.id ? -1 : 1)).map((s) => ({ ...s, plugin: null }));
+  const settings = readJson(inside(claudeDir, 'settings.json') ?? '');
+  const installed = readJson(inside(claudeDir, 'plugins', 'installed_plugins.json') ?? '');
+  const enabled = settings.ok && isObj(settings.value?.enabledPlugins) ? settings.value.enabledPlugins : {};
+  const plugins = installed.ok && isObj(installed.value?.plugins) ? installed.value.plugins : {};
+  for (const key of Object.keys(plugins).sort()) {
+    const entry = Array.isArray(plugins[key]) ? plugins[key].find((e) => e?.scope === 'user' && typeof e.installPath === 'string') : null;
+    if (enabled[key] !== true || !entry) continue;
+    const plugin = key.split('@')[0];
+    // An installPath outside claudeDir turns into a ../ path, which resolveInside rejects, so nothing there is read.
+    const home = path.relative(claudeDir, entry.installPath).split(path.sep);
+    // plugin.json "skills" adds skill folders, or folders of skills, relative to the plugin root (mattpocock-skills uses it).
+    const manifest = readJson(inside(claudeDir, ...home, '.claude-plugin', 'plugin.json') ?? '');
+    const listed = (manifest.ok ? [manifest.value?.skills].flat() : []).filter((p) => typeof p === 'string').map((p) => [...home, ...p.split('/')]);
+    const found = [...skillsIn(...home, 'skills'), ...listed.flatMap((segs) => (isSkill(...segs) ? [skillAt(...segs)] : skillsIn(...segs)))];
+    for (const s of new Map(found.map((f) => [f.skillName, f])).values()) skills.push({ ...s, skillName: `${plugin}:${s.skillName}`, plugin });
+  }
+  const broken = [['settings.json', settings], ['plugins/installed_plugins.json', installed]].find(([, r]) => !r.ok && r.error !== 'missing');
+  return { error: broken ? `${broken[0]} di folder Claude Code rusak` : null, skills };
 }

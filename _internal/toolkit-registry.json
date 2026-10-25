@@ -12,42 +12,51 @@
       "created": "2026-02-19",
       "updated": "2026-10-19",
       "upstreamPath": "skills/remotion-best-practices",
-      "upstreamVersion": "4.0.536"
+      "upstreamVersion": "4.0.536",
+      "category": "composition"
     },
     "remotion": {
       "path": ".claude/skills/remotion/",
       "description": "Toolkit-specific Remotion patterns — custom transitions, shared components, conventions",
       "status": "stable",
       "created": "2025-12-04",
-      "updated": "2026-02-19"
+      "updated": "2026-02-19",
+      "category": "composition"
     },
     "elevenlabs": {
       "path": ".claude/skills/elevenlabs/",
       "description": "ElevenLabs audio - TTS, voice cloning, music, SFX",
       "status": "stable",
       "created": "2025-12-04",
-      "updated": "2026-10-12"
+      "updated": "2026-10-12",
+      "category": "audio-generation",
+      "envVars": [
+        "ELEVENLABS_API_KEY"
+      ]
     },
     "ffmpeg": {
       "path": ".claude/skills/ffmpeg/",
       "description": "FFmpeg video/audio processing for Remotion assets",
       "status": "beta",
       "created": "2025-12-08",
-      "updated": "2025-12-09"
+      "updated": "2025-12-09",
+      "category": "video-editing"
     },
     "playwright-recording": {
       "path": ".claude/skills/playwright-recording/",
       "description": "Playwright browser recording for demo videos",
       "status": "beta",
       "created": "2025-12-08",
-      "updated": "2025-12-10"
+      "updated": "2025-12-10",
+      "category": "composition"
     },
     "frontend-design": {
       "path": ".claude/skills/frontend-design/",
       "description": "Visual design refinement for distinctive, production-grade aesthetics",
       "status": "stable",
       "created": "2025-12-10",
-      "updated": "2025-12-13"
+      "updated": "2025-12-13",
+      "category": "composition"
     },
     "qwen-edit": {
       "path": ".claude/skills/qwen-edit/",
@@ -63,28 +72,32 @@
       "description": "Cloud GPU setup, Docker images, endpoint management, troubleshooting",
       "status": "stable",
       "created": "2026-02-23",
-      "updated": "2026-02-24"
+      "updated": "2026-02-24",
+      "category": "setup"
     },
     "acestep": {
       "path": ".claude/skills/acestep/",
       "description": "AI music generation — prompt engineering, scene presets, lyrics formatting, video production integration",
       "status": "beta",
       "created": "2026-03-22",
-      "updated": "2026-10-12"
+      "updated": "2026-10-12",
+      "category": "music-generation"
     },
     "ltx2": {
       "path": ".claude/skills/ltx2/",
       "description": "AI video generation — prompting guide, parameters, video production use cases (b-roll, animated slides, portraits); LTX-2.5 as a deploy-time opt-in",
       "status": "beta",
       "created": "2026-03-25",
-      "updated": "2026-10-12"
+      "updated": "2026-10-12",
+      "category": "video-generation"
     },
     "moviepy": {
       "path": ".claude/skills/moviepy/",
       "description": "Python video composition with moviepy 2.x — overlaying text on LTX-2/SadTalker output, single-file build.py video projects",
       "status": "beta",
       "created": "2026-04-08",
-      "updated": "2026-04-08"
+      "updated": "2026-04-08",
+      "category": "video-editing"
     },
     "ideogram4": {
       "path": ".claude/skills/ideogram4/",
@@ -94,7 +107,10 @@
       "backend": "ideogram-4 hosted v4 API (json_prompt)",
       "note": "Skill teaches the JSON caption format; Claude is the magic-prompt expander. Tool: tools/ideogram4.py. Hosted paid API (commercial license, ~$0.03–0.10/img); not self-hosted. Needs IDEOGRAM_API_KEY. Ideogram 4.5 is an opt-in (--model 4.5, v2 API) that reads the same captions; run live, near-perfect with JSON captions, garbled filler text with plain prompts.",
       "created": "2026-06-08",
-      "updated": "2026-10-12"
+      "updated": "2026-10-12",
+      "envVars": [
+        "IDEOGRAM_API_KEY"
+      ]
     },
     "synthetic-ui-demo": {
       "path": ".claude/skills/synthetic-ui-demo/",
@@ -102,7 +118,8 @@
       "status": "beta",
       "note": "Product screen kits stay in the project, not lib.",
       "created": "2026-10-21",
-      "updated": "2026-10-21"
+      "updated": "2026-10-21",
+      "category": "composition"
     }
   },
   "commands": {
@@ -215,10 +232,10 @@
   "tools": {
     "voiceover": {
       "path": "tools/voiceover.py",
-      "description": "Generate TTS voiceovers using ElevenLabs, Qwen3-TTS, or 60db",
-      "usage": "uv run tools/voiceover.py --script SCRIPT.md --output out.mp3",
+      "description": "Generate TTS voiceovers using Edge TTS (free, no key, Indonesian voices), ElevenLabs, Qwen3-TTS, or 60db",
+      "usage": "uv run tools/voiceover.py --provider edge --script SCRIPT.md --output out.mp3",
       "options": {
-        "provider": "TTS provider: elevenlabs (default), qwen3, 60db",
+        "provider": "TTS provider: elevenlabs (default), qwen3, 60db, edge (free Microsoft Edge TTS, no API key; id-ID-GadisNeural / id-ID-ArdiNeural)",
         "transport": "60db API transport: synthesize (default), stream, websocket",
         "no-enhance": "Disable 60db audio enhancement (on by default)",
         "stability": "Voice stability 0-1 (unified scale; auto-converted to 0-100 for 60db)",
@@ -228,7 +245,8 @@
       },
       "status": "stable",
       "created": "2025-12-08",
-      "updated": "2026-10-21"
+      "updated": "2026-10-25",
+      "category": "audio-generation"
     },
     "music": {
       "path": "tools/music.py",
@@ -236,7 +254,11 @@
       "usage": "uv run tools/music.py --prompt 'description' --duration 120 --output music.mp3",
       "status": "stable",
       "created": "2025-12-08",
-      "updated": "2025-12-08"
+      "updated": "2026-10-25",
+      "category": "music-generation",
+      "envVars": [
+        "ELEVENLABS_API_KEY"
+      ]
     },
     "music_gen": {
       "path": "tools/music_gen.py",
@@ -284,7 +306,8 @@
         "MODAL_MUSIC_GEN_ENDPOINT_URL"
       ],
       "created": "2026-03-22",
-      "updated": "2026-10-12"
+      "updated": "2026-10-12",
+      "category": "music-generation"
     },
     "sfx": {
       "path": "tools/sfx.py",
@@ -292,7 +315,11 @@
       "usage": "uv run tools/sfx.py --preset whoosh --output sfx.mp3",
       "status": "stable",
       "created": "2025-12-08",
-      "updated": "2026-10-21"
+      "updated": "2026-10-25",
+      "category": "audio-generation",
+      "envVars": [
+        "ELEVENLABS_API_KEY"
+      ]
     },
     "redub": {
       "path": "tools/redub.py",
@@ -304,7 +331,12 @@
         "model": "eleven_multilingual_v2 (default), eleven_flash_v2_5, eleven_v3, eleven_v4 (also on --sync, with stability+similarity). Deprecated eleven_turbo_v2_5 is accepted with a warning and sent as eleven_flash_v2_5"
       },
       "created": "2025-12-28",
-      "updated": "2026-10-12"
+      "updated": "2026-10-25",
+      "category": "audio-generation",
+      "envVars": [
+        "ELEVENLABS_API_KEY"
+      ],
+      "requires": "ffmpeg"
     },
     "addmusic": {
       "path": "tools/addmusic.py",
@@ -312,7 +344,9 @@
       "usage": "uv run tools/addmusic.py --input video.mp4 --prompt 'Subtle corporate' --output output.mp4",
       "status": "beta",
       "created": "2025-12-28",
-      "updated": "2025-12-28"
+      "updated": "2026-10-25",
+      "category": "music-generation",
+      "requires": "ffmpeg; ELEVENLABS_API_KEY only to generate the music (an existing file needs none)"
     },
     "dewatermark": {
       "path": "tools/dewatermark.py",
@@ -330,7 +364,8 @@
         "stock-center"
       ],
       "created": "2025-12-29",
-      "updated": "2026-10-12"
+      "updated": "2026-10-12",
+      "category": "video-editing"
     },
     "locate_watermark": {
       "path": "tools/locate_watermark.py",
@@ -347,7 +382,8 @@
         "stock-center"
       ],
       "created": "2025-12-29",
-      "updated": "2025-12-30"
+      "updated": "2025-12-30",
+      "category": "video-editing"
     },
     "verify_setup": {
       "path": "tools/verify_setup.py",
@@ -355,7 +391,8 @@
       "usage": "uv run tools/verify_setup.py [--test] [--json]",
       "status": "beta",
       "created": "2026-03-23",
-      "updated": "2026-10-12"
+      "updated": "2026-10-12",
+      "category": "setup"
     },
     "modal_setup": {
       "path": "tools/modal_setup.py",
@@ -364,7 +401,8 @@
       "status": "beta",
       "requires": "uv sync --extra modal, authenticated Modal CLI",
       "created": "2026-10-12",
-      "updated": "2026-10-12"
+      "updated": "2026-10-12",
+      "category": "setup"
     },
     "notebooklm_brand": {
       "path": "tools/notebooklm_brand.py",
@@ -372,7 +410,9 @@
       "usage": "uv run tools/notebooklm_brand.py --input video.mp4 --logo logo.png --url 'mysite.com' --output branded.mp4",
       "status": "beta",
       "created": "2025-12-29",
-      "updated": "2025-12-29"
+      "updated": "2026-10-25",
+      "category": "video-editing",
+      "requires": "ffmpeg"
     },
     "cutdown": {
       "path": "tools/cutdown.py",
@@ -765,7 +805,10 @@
       },
       "note": "Commercial license via paid API. Skill `.claude/skills/ideogram4/` teaches the JSON caption format; Claude is the magic-prompt expander. Live-tested on --model 4, the default (json_prompt + text_prompt paths). --model 4.5 (opt-in) posts multipart to /v2/image/generate/ideogram-4-5: --speed maps to quality (FLASH and TURBO -> low, DEFAULT -> medium, QUALITY -> high) and --resolution must be auto or WxH (multiples of 32, sides >= 256, <= 2048x2048 pixels, aspect <= 6:1). Run live 2026-10-12: JSON captions render near-perfect text, plain prompts gain garbled filler text. 4.0 stays the default because 1280x720 is off 4.5's 32-pixel grid.",
       "created": "2026-06-08",
-      "updated": "2026-10-12"
+      "updated": "2026-10-25",
+      "envVars": [
+        "IDEOGRAM_API_KEY"
+      ]
     },
     "ltx2": {
       "path": "tools/ltx2.py",
