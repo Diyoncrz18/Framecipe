@@ -40,6 +40,25 @@ it('install memanggil npm-cli dengan argumen tetap', () => {
   expect(calls[0]).toMatchObject({ cmd: process.execPath, args: [npmCliPath(), 'install', '--no-audit', '--no-fund', '--prefer-offline'], cwd: projAbs(root) });
   expect(() => installDeps(root, { ...d, spawnSync: () => ({ status: 1 }) })).toThrow(expect.objectContaining({ code: 'INSTALL_FAILED' }));
 });
+it('install melaporkan durasi video dan audio sumber; file yang tidak terbaca jadi error, bukan kegagalan', () => {
+  const { root, d, runId } = setup({ spawnStatus: 0 });
+  expect(installDeps(root, d)).toEqual({ ok: true, sources: [] });
+  const run = readRun(root, 'halo', runId).value;
+  writeJsonAtomic(runPaths(root, 'halo', runId).runFile, { ...run, sources: [
+    { name: 'rekaman.mp4', kind: 'video', sizeBytes: 9 }, { name: 'logo.png', kind: 'image', sizeBytes: 9 },
+    { name: 'rusak.mp3', kind: 'audio', sizeBytes: 9 }, { name: '../../../x.mp3', kind: 'audio', sizeBytes: 9 }] });
+  const probed = [];
+  const probeMedia = (proj, file) => {
+    probed.push(path.relative(proj, file));
+    if (file.endsWith('rusak.mp3')) throw new Error('ffprobe gagal: rusak');
+    return { durationSeconds: 12.5, width: 1920, height: 1080, fps: 30 };
+  };
+  expect(installDeps(root, { ...d, probeMedia }).sources).toEqual([
+    { name: 'rekaman.mp4', durationSeconds: 12.5, width: 1920, height: 1080, fps: 30 },
+    { name: 'rusak.mp3', error: 'ffprobe gagal: rusak' },
+    { name: '../../../x.mp3', error: expect.stringContaining('outside') }]);
+  expect(probed).toEqual([path.join('public', 'sources', 'rekaman.mp4'), path.join('public', 'sources', 'rusak.mp3')]);
+});
 it('render menyusun argumen dari script template dan memakai browser bersama', () => {
   const { root, calls, d, runId } = setup({ spawnStatus: 0 });
   renderVideo(root, d);

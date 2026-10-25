@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, it } from 'vitest';
-import { findBrowserExe, parseFfprobeJson, parseRenderScript, probeVideo, remotionCliPath } from './remotion.mjs';
+import { findBrowserExe, parseFfprobeJson, parseRenderScript, probeMedia, probeVideo, remotionCliPath } from './remotion.mjs';
 import { makeTempRoot } from './test-utils.mjs';
 
 const real = path.resolve(import.meta.dirname, '..', '..');
@@ -44,4 +44,15 @@ it('remotionCliPath dan probeVideo gagal dengan pesan jelas', () => {
   fs.writeFileSync(cli, '');
   expect(remotionCliPath(project)).toBe(cli);
   expect(() => probeVideo(project, path.join(project, 'x.mp4'), () => ({ status: 1, stderr: 'boom\n' }))).toThrow('ffprobe gagal: boom');
+});
+it('probeMedia: video dengan ukuran gambar, audio (juga dengan cover art) hanya durasi', () => {
+  const project = makeTempRoot();
+  const cli = path.join(project, 'node_modules', '@remotion', 'cli', 'remotion-cli.js'); fs.mkdirSync(path.dirname(cli), { recursive: true });
+  fs.writeFileSync(cli, '');
+  const answer = (data) => () => ({ status: 0, stdout: JSON.stringify(data) });
+  const video = { format: { duration: '8.5' }, streams: [{ codec_type: 'video', width: 1280, height: 720, r_frame_rate: '25/1' }] };
+  expect(probeMedia(project, 'v.mp4', answer(video))).toEqual({ durationSeconds: 8.5, width: 1280, height: 720, fps: 25 });
+  const mp3 = { format: { duration: '61.2' }, streams: [{ codec_type: 'audio' }, { codec_type: 'video', disposition: { attached_pic: 1 } }] };
+  expect(probeMedia(project, 'a.mp3', answer(mp3))).toEqual({ durationSeconds: 61.2 });
+  expect(() => probeMedia(project, 'a.mp3', answer({ format: {}, streams: [] }))).toThrow('Durasi tidak terbaca.');
 });

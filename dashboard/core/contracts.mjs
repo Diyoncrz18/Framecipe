@@ -1,5 +1,6 @@
 // The only core module that imports zod. Others that need validation import this one.
 import { z } from 'zod';
+import { SOURCE_KINDS } from './source-files.mjs';
 
 export const STAGES = ['setup', 'script', 'assets', 'audio', 'compose', 'qc', 'render', 'review', 'done'];
 export const PHASE_BY_STAGE = {
@@ -99,11 +100,16 @@ export const flowSchema = z.object({
 
 // --- Request, run, event (PRD 9.3-9.5). Read by code, not shown to users, so default zod messages. ---
 
+// A source file the request brought along (uploads.mjs): its stored name, in .dashboard/uploads/<batch>/ and later projects/<slug>/public/sources/.
+const sourceSchema = z.object({ name: z.string().min(1), kind: z.enum(SOURCE_KINDS), sizeBytes: z.number().int().nonnegative() });
+
 export const requestSchema = z.object({
   id: z.string().min(1),
   flow: z.string().min(1),
   topic: z.string(),
   notes: z.string(),
+  uploads: z.string().nullable().optional(), // optional: requests written before source files existed have neither field
+  sources: z.array(sourceSchema).optional(),
   createdAt: z.iso.datetime({ offset: true }),
   status: z.enum(['baru', 'diambil']),
   runId: z.string().nullable(),
@@ -119,6 +125,7 @@ export const runSchema = z.object({
   request: z.string().nullable(),
   topic: z.string(),
   notes: z.string().optional(),
+  sources: z.array(sourceSchema).optional(),
   trigger: z.string(),
   retryOf: z.string().nullable(),
   sessionId: z.string().nullable(),

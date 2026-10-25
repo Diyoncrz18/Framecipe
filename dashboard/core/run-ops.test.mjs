@@ -84,6 +84,28 @@ it('start dari permintaan menandai permintaan diambil', () => {
   failRun(root, 'x', deps(at('2026-10-24T01:54:00')));
   expect(() => startRun(root, { request: 'abc123' }, deps(at('2026-10-24T01:55:00')))).toThrow(expect.objectContaining({ code: 'REQUEST_TAKEN' }));
 });
+it('start dari permintaan dengan file sumber menyalinnya ke public/sources; file hilang ditolak sebelum proyek dibuat', () => {
+  const root = makeFixtureRepo();
+  const up = path.join(root, '.dashboard', 'uploads', 'b1'); fs.mkdirSync(up, { recursive: true });
+  fs.writeFileSync(path.join(up, 'rekaman.mp4'), 'video'); fs.writeFileSync(path.join(up, 'musik.mp3'), 'mp3');
+  const sources = [{ name: 'rekaman.mp4', kind: 'video', sizeBytes: 5 }, { name: 'musik.mp3', kind: 'audio', sizeBytes: 3 }];
+  const req = (id, list) => writeJsonAtomic(requestPath(root, id), { id, flow: 'contoh-penjelasan', topic: `Edit ${id}`, notes: '',
+    uploads: 'b1', sources: list, createdAt: '2026-10-24T01:50:00.000Z', status: 'baru', runId: null });
+  req('hilang', [...sources, { name: 'tidak-ada.wav', kind: 'audio', sizeBytes: 1 }]);
+  expect(() => startRun(root, { request: 'hilang' }, deps(at('2026-10-24T01:53:00')))).toThrow(expect.objectContaining({ code: 'SOURCE_MISSING' }));
+  expect([fs.existsSync(path.join(root, 'projects', 'edit-hilang')), readActiveRun(root)]).toEqual([false, null]);
+
+  req('ada', sources);
+  const a = startRun(root, { request: 'ada' }, deps(at('2026-10-24T01:53:00')));
+  const pub = path.join(root, 'projects', a.project, 'public', 'sources');
+  expect(fs.readdirSync(pub).sort()).toEqual(['musik.mp3', 'rekaman.mp4']);
+  expect(fs.readdirSync(up).sort()).toEqual(['musik.mp3', 'rekaman.mp4']); // copied, not moved
+  const run = readRun(root, a.project, a.runId).value;
+  expect([run.sources, runSchema.safeParse(run).success]).toEqual([sources, true]);
+  failRun(root, 'x', deps(at('2026-10-24T01:54:00')));
+  const b = startRun(root, { retry: a.runId }, { ...deps(at('2026-10-24T01:55:00')), rand: () => 'c3d4' });
+  expect(readRun(root, a.project, b.runId).value.sources).toEqual(sources);
+});
 it('topik sama memberi proyek -2; alur tidak valid dan worktree ditolak', () => {
   const root = makeFixtureRepo(); const d = deps(at('2026-10-24T01:53:00'));
   startRun(root, { flow: 'contoh-penjelasan', topic: 'Halo' }, d); failRun(root, 'x', d);

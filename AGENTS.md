@@ -41,7 +41,7 @@ The dashboard never starts Claude by itself (a one-click "Generate" button is a 
 │   └── AGENTS.md              # Next.js agent note (auto-maintained by `next dev`; keep it)
 ├── flows/<id>/flow.json       # Recipes. flows/.archive/ = archived (git-ignored debris, do not commit)
 ├── projects/<slug>/           # Video projects (git-ignored): template copy, runs/<runId>/, out/<runId>.mp4
-├── .dashboard/                # Runtime data (git-ignored): requests, events, active-run.json, shared Chrome
+├── .dashboard/                # Runtime data (git-ignored): requests, uploads (request source files), events, active-run.json, shared Chrome
 ├── .claude/
 │   ├── commands/buat-video.md # The production command (Indonesian)
 │   ├── commands/*.md          # Toolkit commands (/video, /brand, /template, ...)
@@ -66,6 +66,8 @@ The dashboard never starts Claude by itself (a one-click "Generate" button is a 
 | `flows.mjs` | flows/<id>/flow.json: list, read, save, duplicate, archive (archive = move). Corrupt file → item marked corrupt, never throws. |
 | `flow-form.mjs` | Pure editor helpers (no imports, browser-safe): defaults, coerceDraft, durations, VOICE_PROVIDER_KEYS. |
 | `requests.mjs` | Video requests (.dashboard/requests/<id>.json) behind `/buat-video req=<id>`. |
+| `uploads.mjs` | Request source files: streams an upload into .dashboard/uploads/<batch>/ (sanitized name, type list, 2 GB cap), checks a request's files, copies them into a project. |
+| `source-files.mjs` | Browser-safe: allowed source extensions per kind, limits, `sourceKind`. |
 | `run-ops.mjs` | Run lifecycle behind run.mjs: start, stage, wait, fail, status, audio, install, render, stills, finish. |
 | `run-store.mjs` | Paths and reads of run state; Node built-ins only (used by the hook). |
 | `runs.mjs` | Effective display status, timeline, summary, skill usage, markRunFailed. |
@@ -118,7 +120,7 @@ uv run python -m py_compile tools/<file>.py
 | `stage <name>` | Enter a stage: setup, script, assets, audio, compose, qc, render, review, done |
 | `wait --reason "<r>"` | Pause for the user (script review) |
 | `audio` | Voiceover from `projects/<p>/public/audio/scenes/<NN>-<scene>.txt` via `tools/voiceover.py` with the recipe's provider, plus `background-music.mp3` from the free library track |
-| `install` | npm install in the project |
+| `install` | npm install in the project, then reports duration (and size/fps for video) of the run's video and audio sources |
 | `render` | Remotion render to `out/<runId>.mp4` (stale copy deleted first) |
 | `stills --count N` | Review frames (also gallery thumbnails) |
 | `finish` | Validate MP4 (exists, duration > 0, valid size/fps) and close as success; prunes node_modules |
@@ -130,7 +132,8 @@ Each prints JSON on stdout; failures print `{"error":"<CODE>"}` and an Indonesia
 ## 5. Data contracts
 
 - **flow.json** (recipe): `id, name, description, version, updatedAt, template, brand, output{aspectRatio,width,height,fps,targetDurationSeconds}, language, style{tone,audience,rules[]}, scenes[{id,label,goal,durationSeconds,rules[],narration,visualHint?,transitionOut?}], audio{voiceover{enabled,provider: edge|elevenlabs|qwen3|60db, voice?}, music{enabled,preset?,prompt?}, captions{enabled}}, references[{kind,id|path|url}], skills[] (Skill-tool names, e.g. remotion-best-practices), approval: auto|script-review, notes`. `flows/contoh-penjelasan/flow.json` must equal `dashboard/core/fixtures/flow.valid.json`.
-- **run.json**: `runId, project, flow, flowVersion, request, topic, notes, trigger, retryOf, sessionId, claudeCodeVersion, status (running|waiting|success|failed|abandoned|cancelled), stage, waitReason, stages[{name,startedAt,endedAt}], startedAt, endedAt, output, warnings[], error: {stage, message} | null`.
+- **Request** (`.dashboard/requests/<id>.json`): `id, flow, topic, notes, uploads (batch folder or null), sources[{name, kind: video|audio|image|text, sizeBytes}], createdAt, status (baru|diambil), runId`. Source files are uploaded by `POST /api/uploads` (raw body, one file per call; proxy.ts skips this route because it would cut the body at 10 MB, so the route checks Host and Origin itself) and copied, never moved, into `projects/<slug>/public/sources/` by `run.mjs start`.
+- **run.json**: `runId, project, flow, flowVersion, request, topic, notes, sources[] (same shape as the request's), trigger, retryOf, sessionId, claudeCodeVersion, status (running|waiting|success|failed|abandoned|cancelled), stage, waitReason, stages[{name,startedAt,endedAt}], startedAt, endedAt, output, warnings[], error: {stage, message} | null`.
 - **Display status** (derived in runs.mjs): running, waiting, waiting-permission, stopped, success, failed, cancelled, abandoned. No activity > 15 min → abandoned, except when the last event is a permission prompt (JMB-05). `idle_prompt` notifications never count as status.
 - **Events**: `.dashboard/events/<sessionId>.jsonl` lines validated by `eventSchema`; invalid lines are skipped.
 - **Active run**: `.dashboard/active-run.json`. Output: `projects/<slug>/out/<runId>.mp4`.
@@ -145,7 +148,7 @@ Each prints JSON on stdout; failures print `{"error":"<CODE>"}` and an Indonesia
 6. Corrupt or missing JSON renders as a "Data rusak" item, never an error page.
 7. UI text in **Bahasa Indonesia**; code, identifiers, file names, comments in **English**.
 8. Accessibility: keyboard-operable, labelled inputs, AA contrast (muted text token is `oklch(0.51 0 0)` for this reason), status = text or icon, not color alone. Every animation has a reduced-motion path.
-9. Never permanently delete user data. "Arsip" = move the folder. Only rebuildable files are auto-deleted (project node_modules after success, a run's own stale MP4 before re-render).
+9. Never permanently delete user data (uploaded source files included). "Arsip" = move the folder. Only rebuildable files are auto-deleted (project node_modules after success, a run's own stale MP4 before re-render).
 10. Existing toolkit commands and behavior stay unchanged unless the task is about them.
 11. One active run at a time; stale after 15 min (permission-prompt exception).
 12. Live pages refresh at least every 2 s (AutoRefresh on Beranda and Eksekusi).
@@ -211,7 +214,7 @@ Report results honestly: say what was verified and what was not.
 
 ## 13. Known gaps and roadmap
 
-Deferred on purpose (see rulings R42): `run.mjs start --project <slug>` (JMB-02), tool/command usage on the Skill page (SKL-03), a PRD §14 integration test, NFR-06 performance measurement. Planned (P1): one-click Generate from the dashboard with render progress and cancel, revisions, uploaded inspiration references, generated music in recipes, gallery actions (open folder, Remotion Studio, trash).
+Deferred on purpose (see rulings R42): `run.mjs start --project <slug>` (JMB-02), tool/command usage on the Skill page (SKL-03), a PRD §14 integration test, NFR-06 performance measurement. Planned (P1): one-click Generate from the dashboard with render progress and cancel, revisions, uploaded inspiration references in recipes (request source files exist), generated music in recipes, gallery actions (open folder, Remotion Studio, trash).
 
 ## Codex setup
 

@@ -17,6 +17,8 @@ export const STAGE_LABELS = {
   qc: 'QC', render: 'Render', review: 'Review visual', done: 'Selesai',
 };
 
+export const SOURCE_KIND_LABELS = { video: 'Video', audio: 'Audio', image: 'Gambar', text: 'Teks' };
+
 export const PHASE_LABELS = {
   planning: 'Perencanaan', assets: 'Aset', audio: 'Audio', editing: 'Penyuntingan', rendering: 'Render', complete: 'Selesai',
 };

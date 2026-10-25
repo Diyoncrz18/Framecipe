@@ -8,3 +8,7 @@ export function proxy(request: NextRequest) {
   if (isAllowedHost(request.headers.get("host"))) return NextResponse.next();
   return new Response("Host tidak diizinkan", { status: 403, headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }
+
+// Everything but the upload route: for a route it runs on, Next copies the request body and cuts it at 10 MB, which would
+// silently truncate a video. app/api/uploads/route.ts makes the same Host check itself.
+export const config = { matcher: ["/((?!api/uploads$).*)"] };

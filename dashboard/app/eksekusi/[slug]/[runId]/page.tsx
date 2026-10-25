@@ -9,10 +9,11 @@ import { StageBar, type Stage } from "@/components/stage-bar";
 import { StatusBadge, type DisplayStatus } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Timeline, type TimelineEvent } from "@/components/timeline";
+import { SOURCE_KIND_LABELS } from "@/core/labels.mjs";
 import { resolveInside } from "@/core/paths.mjs";
 import { retryPrompt } from "@/core/requests.mjs";
 import { listRuns, readRunDetail } from "@/core/runs.mjs";
-import { formatDuration } from "@/lib/format";
+import { formatBytes, formatDuration } from "@/lib/format";
 import { mediaUrl } from "@/lib/media";
 import { isLive } from "@/lib/run-status";
 import { ROOT } from "@/lib/root";
@@ -75,6 +76,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
 
   const { run, summary } = d;
   const frames: string[] = d.frames;
+  const sources: { name: string; kind: keyof typeof SOURCE_KIND_LABELS; sizeBytes: number }[] = run.sources ?? [];
   const status = d.displayStatus as DisplayStatus;
   const ended = new Set(d.timeline.filter((e) => e.phase === "end" && e.toolUseId).map((e) => e.toolUseId));
   // A command logs a start and an end event; once it has ended, the end row (with its length) stands for both.
@@ -116,6 +118,20 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       >
         {d.script?.trim() ? <Markdown source={d.script} /> : null}
       </RunPanel>
+
+      {sources.length > 0 && (
+        <Section title="File sumber">
+          <p className="text-sm text-muted-foreground">Dari permintaan, disalin ke <code className="break-all">projects/{slug}/public/sources/</code>.</p>
+          <ul className="flex max-w-2xl flex-col gap-1.5 text-sm">
+            {sources.map((s) => (
+              <li key={s.name} className="flex flex-wrap items-baseline gap-x-2">
+                <span className="font-mono break-all">{s.name}</span>
+                <span className="text-xs text-muted-foreground">{SOURCE_KIND_LABELS[s.kind] ?? s.kind} · {formatBytes(s.sizeBytes)}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       <Section title="Ringkasan">
         <div className="flex flex-col gap-4">

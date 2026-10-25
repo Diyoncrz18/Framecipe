@@ -34,11 +34,26 @@ export function parseFfprobeJson(text) {
 }
 
 // ffprobe ships inside the project's Remotion CLI, so nothing needs to be on PATH. No shell: args are an array.
-export function probeVideo(projectDir, fileAbs, spawnSync = nodeSpawnSync) {
+function ffprobeJson(projectDir, fileAbs, spawnSync) {
   const args = [remotionCliPath(projectDir), 'ffprobe', '-v', 'error', '-print_format', 'json', '-show_format', '-show_streams', fileAbs];
   const r = spawnSync(process.execPath, args, { cwd: projectDir, encoding: 'utf8', timeout: 120000 });
   if (r.error || r.status !== 0) throw new Error(`ffprobe gagal: ${r.error?.message || r.stderr?.trim() || `kode ${r.status}`}`);
-  return { ...parseFfprobeJson(r.stdout), sizeBytes: fs.statSync(fileAbs).size };
+  return r.stdout;
+}
+
+export function probeVideo(projectDir, fileAbs, spawnSync = nodeSpawnSync) {
+  return { ...parseFfprobeJson(ffprobeJson(projectDir, fileAbs, spawnSync)), sizeBytes: fs.statSync(fileAbs).size };
+}
+
+// Video or audio: the duration always, size and frame rate only when there is a picture.
+export function probeMedia(projectDir, fileAbs, spawnSync = nodeSpawnSync) {
+  const text = ffprobeJson(projectDir, fileAbs, spawnSync);
+  const data = JSON.parse(text);
+  // An mp3's cover art shows up as a video stream too.
+  if ((data.streams ?? []).some((s) => s.codec_type === 'video' && !s.disposition?.attached_pic)) return parseFfprobeJson(text);
+  const durationSeconds = Number(data.format?.duration);
+  if (!(durationSeconds > 0)) throw new Error('Durasi tidak terbaca.');
+  return { durationSeconds };
 }
 
 const MAX_BROWSER_DEPTH = 6;

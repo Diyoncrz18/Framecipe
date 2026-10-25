@@ -25,6 +25,8 @@ Dashboard ini memesan, Claude membuat, dan dashboard menampilkan hasilnya. Anda 
 Cara utama lewat dashboard:
 
 1. Di Beranda, pilih alur, isi topik dan catatan, lalu klik **Buat prompt**. Dashboard menyimpan permintaan Anda dan menampilkan prompt `/buat-video req=<id>`.
+
+   Bila ingin menyunting bahan Anda sendiri, lampirkan **File sumber** lewat **Pilih file** atau **Pilih folder**: video asli, audio (musik atau suara), gambar, atau teks seperti naskah, subtitle, dan data. Maksimal 2 GB per file dan 20 file. File diunggah ke `.dashboard/uploads/` saat Anda membuat prompt, lalu disalin ke `public/sources/` milik proyek saat video dibuat; file aslinya tidak pernah dihapus. Tulis di Catatan cara memakainya, misalnya "potong jadi 30 detik dan pakai musik ini sebagai latar".
 2. Salin prompt itu, lalu tempel di chat Claude Code yang dibuka di folder repo utama.
 3. Claude mengambil permintaan itu, memulai run, dan mengerjakan video tahap demi tahap. Pantau di halaman Eksekusi.
 

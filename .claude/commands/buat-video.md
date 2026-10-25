@@ -20,13 +20,24 @@ Kamu menjalankan **alur yang sudah disetujui pemiliknya** di dashboard. Ini buka
 - Bila `start` gagal (misalnya masih ada run aktif lain), sampaikan pesannya ke pengguna lalu berhenti. Jangan menjalankan `fail`, `finish`, `stage`, atau subperintah lain: run aktif itu milik sesi lain.
 - Untuk `audio`, `install`, dan `render`, beri perintah Bash timeout 600000 ms.
 
+## File sumber
+Pemilik bisa melampirkan file sumber di permintaan: video asli, audio, gambar, atau teks. `start` menyalinnya ke `projects/<project>/public/sources/`, dan daftarnya ada di field `sources` milik `run.json` (`name`, `kind`: `video` | `audio` | `image` | `text`, `sizeBytes`).
+- File sumber adalah bahan utama dari pemilik: pakai semuanya, jangan diganti dengan aset buatan. Ikuti catatan permintaan tentang cara memakainya. Bila catatan tidak menjelaskan: video adalah rekaman yang disunting (dipotong, diberi judul, teks, dan transisi), audio adalah musik atau suara latar, gambar adalah visual scene, dan teks adalah naskah, subtitle, atau data.
+- Di kode, rujuk dengan `staticFile('sources/<name>')`: video dengan `<OffthreadVideo>` (potong dengan `trimBefore`/`trimAfter` dalam frame, atur `volume` dan `playbackRate`), audio dengan `<Audio>`, gambar dengan `<Img>`. Jangan memakai tag `<video>` mentah. Baca file teks dengan tool Read.
+- Template `sprint-review` membaca video demo dari `public/demos/`. Untuk menampilkan video sumber, ubah komponen di salinan proyek (misalnya `src/components/demos/DemoSection.tsx`) atau buat komponen scene sendiri yang memakai `staticFile('sources/<name>')`.
+- Durasi video dan audio sumber didapat dari `install` (lihat langkah 1). Jangan membuat scene yang memutar video sumber lebih lama dari durasinya.
+- Bila audio sumber dipakai sebagai musik latar, jangan pasang `background-music.mp3` dari `audio`. Bila video sumber bersuara dan ada narasi, kecilkan `volume` video (sekitar 0.2) selama narasi.
+- Jangan mengubah, menimpa, atau menghapus file di `public/sources/`.
+
 ## Langkah
 1. Mulai run sesuai argumen:
    - `req=<id>`: `node dashboard/bin/run.mjs start --request <id>`
    - `perbaiki=<runId>`: `node dashboard/bin/run.mjs start --retry <runId>`. Baca juga `error` di `run.json` milik run yang gagal, lalu lanjutkan dari file proyek yang sudah ada.
    - selain itu: `node dashboard/bin/run.mjs start --flow <id-alur> --topic "<topik>"`
 
-   Bila `start` gagal, sampaikan pesannya ke pengguna lalu berhenti (jangan menjalankan `fail`, `finish`, `stage`, atau subperintah lain). Bila berhasil, simpan `project` dan `runId` dari output JSON. Baca `projects/<project>/runs/<runId>/run.json` (topik, catatan) dan `projects/<project>/runs/<runId>/flow.json` (alur yang berlaku).
+   Bila `start` gagal, sampaikan pesannya ke pengguna lalu berhenti (jangan menjalankan `fail`, `finish`, `stage`, atau subperintah lain). Bila berhasil, simpan `project` dan `runId` dari output JSON. Baca `projects/<project>/runs/<runId>/run.json` (topik, catatan, `sources`) dan `projects/<project>/runs/<runId>/flow.json` (alur yang berlaku).
+
+   Bila `sources` berisi file `video` atau `audio`, jalankan `node dashboard/bin/run.mjs install` sekarang (lihat bagian File sumber). Output JSON-nya memuat `sources` dengan `durationSeconds` tiap file, ditambah `width`, `height`, dan `fps` untuk video, atau `error` bila file tidak terbaca. Pakai angka itu saat merencanakan scene. Langkah 8 tetap dijalankan.
 2. Muat setiap skill di `flow.skills` dengan tool Skill.
 3. Pelajari `flow.references`:
    - `example` atau `project`: baca sumbernya (`examples/<id>/src`, `projects/<id>/src`).

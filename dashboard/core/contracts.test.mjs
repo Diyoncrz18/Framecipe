@@ -57,6 +57,8 @@ it('runSchema dan eventSchema', () => {
   expect(runSchema.safeParse({ ...run, status: 'done' }).success).toBe(false);
   expect(runSchema.safeParse({ ...run, status: 'failed', error: { stage: 'render', message: 'render gagal' } }).success).toBe(true);
   expect(runSchema.safeParse({ ...run, status: 'failed', error: 'render gagal' }).success).toBe(false);
+  expect(runSchema.safeParse({ ...run, sources: [{ name: 'musik.mp3', kind: 'audio', sizeBytes: 9 }] }).success).toBe(true);
+  expect(runSchema.safeParse({ ...run, sources: [{ name: 'musik.mp3', kind: 'audio' }] }).success).toBe(false);
   expect(eventSchema.safeParse({ ts: '2026-10-24T01:53:05.120Z', sessionId: 's1', runId: null, type: 'skill',
     tool: 'Skill', summary: 'remotion-official', ok: true }).success).toBe(true);
   // The hook writes stop, session-start and session-end events with no summary; only a summary that is not a string is a bad shape.
@@ -68,4 +70,8 @@ it('requestSchema', () => {
     createdAt: '2026-10-24T01:52:40.000Z', status: 'baru', runId: null };
   expect(requestSchema.safeParse(req).success).toBe(true);
   expect(requestSchema.safeParse({ ...req, status: 'selesai' }).success).toBe(false);
+  const withSources = { ...req, uploads: 'a1b2c3', sources: [{ name: 'rekaman.mp4', kind: 'video', sizeBytes: 1024 }] };
+  expect(requestSchema.safeParse(withSources).success).toBe(true);
+  expect(requestSchema.safeParse({ ...withSources, sources: [{ name: 'x.exe', kind: 'program', sizeBytes: 1 }] }).success).toBe(false);
+  expect(requestSchema.safeParse({ ...withSources, sources: [{ name: 'x.mp4', kind: 'video', sizeBytes: -1 }] }).success).toBe(false);
 });

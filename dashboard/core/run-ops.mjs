@@ -9,9 +9,10 @@ import { PHASE_BY_STAGE, STAGES, checkFlowAgainstRepo, parseFlow, requestSchema 
 import { newRunId, randomHex, slugify, uniqueSlug } from './ids.mjs';
 import { readJson, writeJsonAtomic } from './jsonfile.mjs';
 import { isGitWorktree, resolveInside, toRepoRelative } from './paths.mjs';
-import { findBrowserExe, parseRenderScript, probeVideo, remotionCliPath, sharedBrowserDir } from './remotion.mjs';
+import { findBrowserExe, parseRenderScript, probeMedia, probeVideo, remotionCliPath, sharedBrowserDir } from './remotion.mjs';
 import { clearActiveRun, lastActivityAt, readActiveRun, readRun, requestPath, runPaths, writeActiveRun, writeRun } from './run-store.mjs';
 import { effectiveStatus } from './runs.mjs';
+import { copySources, readSources } from './uploads.mjs';
 
 const coded = (code, message) => Object.assign(new Error(message), { code });
 const badArgs = (why) => coded('BAD_ARGS', `Argumen tidak lengkap: ${why}.`);
@@ -33,6 +34,7 @@ export const defaultDeps = {
   now: () => new Date(),
   spawnSync,
   probe: probeVideo,
+  probeMedia,
   claudeVersion: detectClaudeVersion,
   staleMs: 900000,
   rand: () => randomHex(4),
@@ -121,7 +123,7 @@ export function startRun(root, input, deps = defaultDeps) {
   if ([input.request, input.retry, input.flow ?? input.topic].filter((v) => v !== undefined).length !== 1) {
     throw badArgs('pilih salah satu: --request, --flow dengan --topic, atau --retry');
   }
-  let flowId, topic, notes, requestId = null, requestValue = null, old = null;
+  let flowId, topic, notes, requestId = null, requestValue = null, old = null, uploads = null, sources = [];
   if (input.retry !== undefined) {
     old = findRun(root, input.retry);
     if (!['failed', 'cancelled', 'abandoned'].includes(old.status)) {
@@ -130,13 +132,18 @@ export function startRun(root, input, deps = defaultDeps) {
     ({ flow: flowId, topic } = old);
     notes = old.notes ?? '';
     requestId = old.request ?? null;
+    sources = old.sources ?? []; // already in the project's public/sources/
   } else if (input.request !== undefined) {
     const id = input.request;
     const r = isPlainId(id) ? readJson(requestPath(root, id)) : { ok: false };
     const parsed = r.ok ? requestSchema.safeParse(r.value) : null;
     if (!parsed?.success) throw coded('REQUEST_NOT_FOUND', `Permintaan ${id} tidak ditemukan.`);
     if (parsed.data.status === 'diambil') throw coded('REQUEST_TAKEN', `Permintaan ${id} sudah diambil oleh run ${parsed.data.runId}.`);
-    ({ flow: flowId, topic, notes } = parsed.data);
+    ({ flow: flowId, topic, notes, uploads = null } = parsed.data);
+    // Checked before the project exists: a request whose files are gone makes no half-built project.
+    const found = readSources(root, uploads, (parsed.data.sources ?? []).map((s) => s.name));
+    if (!found.ok) throw coded('SOURCE_MISSING', `File sumber permintaan ${id} tidak lengkap: ${found.errors.join(' ')}`);
+    sources = found.sources;
     requestId = id;
     requestValue = r.value;
   } else {
@@ -157,6 +164,7 @@ export function startRun(root, input, deps = defaultDeps) {
   } else {
     const template = resolveInside(root, 'templates', flow.template);
     fs.cpSync(template, projectDir, { recursive: true, filter: (src) => !TEMPLATE_SKIP.has(path.relative(template, src)) });
+    if (sources.length) copySources(root, uploads, sources, projectDir);
     writeJsonAtomic(path.join(projectDir, 'project.json'), {
       name: project, template: flow.template, brand: flow.brand, created: nowIso, updated: nowIso, phase: 'planning', scenes: [],
       audio: { voiceover: { file: 'audio/voiceover.mp3', status: flow.audio.voiceover.enabled ? 'needed' : 'optional' } },
@@ -168,7 +176,7 @@ export function startRun(root, input, deps = defaultDeps) {
 
   writeJsonAtomic(paths.flowFile, flowValue);
   writeRun(root, {
-    runId, project, flow: flowId, flowVersion: flow.version, request: requestId, topic, notes, trigger, retryOf: old?.runId ?? null,
+    runId, project, flow: flowId, flowVersion: flow.version, request: requestId, topic, notes, sources, trigger, retryOf: old?.runId ?? null,
     sessionId: null, claudeCodeVersion: deps.claudeVersion(), status: 'running', stage: 'setup', waitReason: null,
     stages: [{ name: 'setup', startedAt: nowIso, endedAt: null }], startedAt: nowIso, endedAt: null, output: null, warnings: [], error: null,
   });
@@ -274,11 +282,20 @@ export function generateAudio(root, deps = defaultDeps) {
 }
 
 // Child output goes straight to the terminal (stdio: 'inherit'), so a failure message points at it.
+// Then, with Remotion's ffprobe in place, it reports how long the request's own video and audio are: Claude plans scenes around them.
 export function installDeps(root, deps = defaultDeps) {
-  const { proj } = activeProject(root);
+  const { run, proj } = activeProject(root);
   const r = deps.spawnSync(process.execPath, [npmCliPath(), 'install', '--no-audit', '--no-fund', '--prefer-offline'], { cwd: proj, stdio: 'inherit' });
   if (r.status !== 0) throw coded('INSTALL_FAILED', `npm install gagal (kode ${exitCode(r)}).`);
-  return { ok: true };
+  const media = (Array.isArray(run.sources) ? run.sources : []).filter((s) => s?.kind === 'video' || s?.kind === 'audio');
+  const sources = media.map(({ name }) => {
+    try {
+      return { name, ...deps.probeMedia(proj, resolveInside(proj, 'public', 'sources', name)) };
+    } catch (e) {
+      return { name, error: e.message }; // one unreadable file does not stop the run: Claude reads the error and decides
+    }
+  });
+  return { ok: true, sources };
 }
 
 // Renders to out/<runId>.mp4, not the script's own output name: finish must never pick up an older video.
