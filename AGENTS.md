@@ -71,7 +71,7 @@ The dashboard never starts Claude by itself (a one-click "Generate" button is a 
 | `runs.mjs` | Effective display status, timeline, summary, skill usage, markRunFailed. |
 | `hook-events.mjs` | Claude Code hook payload → event line; binds a session to a run only on a successful `node … run.mjs start`. |
 | `projects.mjs` | projects/ for gallery and project pages. |
-| `catalog.mjs` | toolkit-registry.json merged with what is really on disk (skills, templates, brands, examples, tools); readiness per item; global skills from `~/.claude` (user skills and enabled plugins). |
+| `catalog.mjs` | toolkit-registry.json merged with what is really on disk (skills, templates, brands, examples, tools); readiness per item; global skills from `~/.claude` (user skills and enabled plugins); `readItemDoc` (SKILL.md / command body, tool docstring) for the Skill detail page. |
 | `health.mjs` | Tool versions, hooks/command installed, API keys filled or empty (never values). |
 | `remotion.mjs` | Remotion CLI paths, render-script parsing, ffprobe through Remotion, shared Chrome. |
 | `http-range.mjs` | What /api/media serves: allowed roots, MIME, Range, download header. |
@@ -83,7 +83,7 @@ The dashboard never starts Claude by itself (a one-click "Generate" button is a 
 
 ### Dashboard pages (UI is Indonesian)
 
-Beranda `/` (request form, active run, health, latest videos) · Alur `/alur` (recipes, editor `/alur/[id]`, `/alur/baru`) · Video `/video` (gallery, `/video/[slug]`) · Eksekusi `/eksekusi` (runs, live detail `/eksekusi/[slug]/[runId]`) · Referensi Desain `/referensi` · Skill & Tools `/skill` · Cara Kerja `/cara-kerja` · Pengaturan `/pengaturan`. Shell: grouped sidebar, header breadcrumb, Ctrl+K page palette, light/dark/system theme toggle.
+Beranda `/` (request form, active run, health, latest videos) · Alur `/alur` (recipes, editor `/alur/[id]`, `/alur/baru`) · Video `/video` (gallery, `/video/[slug]`) · Eksekusi `/eksekusi` (runs, live detail `/eksekusi/[slug]/[runId]`) · Referensi Desain `/referensi` · Skill & Tools `/skill` (table, detail `/skill/[tab]/[key]`) · Cara Kerja `/cara-kerja` · Pengaturan `/pengaturan`. Shell: grouped sidebar, header breadcrumb, Ctrl+K page palette, light/dark/system theme toggle.
 
 ## 3. Tech stack
 

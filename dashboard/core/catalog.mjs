@@ -233,7 +233,7 @@ export function readiness(item, filled) {
 // Claude Code's own folder for user settings, skills and plugins; CLAUDE_CONFIG_DIR moves it, as in Claude Code.
 export const defaultClaudeDir = () => process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
 
-/** @typedef {{ id: string, skillName: string, description: string, plugin: string | null }} GlobalSkill */
+/** @typedef {{ id: string, skillName: string, description: string, plugin: string | null, doc: { root: string, path: string } }} GlobalSkill */
 
 // Skills Claude Code loads from outside the repo: <claudeDir>/skills and the skills of every enabled plugin, invoked as
 // "<plugin>:<skill>". Frontmatter only, read only, and through resolveInside with claudeDir as the root (AGENTS.md hard rule 2).
@@ -243,7 +243,7 @@ export function readGlobalSkills(claudeDir) {
   const isSkill = (...segs) => fileNames(claudeDir, ...segs).includes('SKILL.md');
   const skillAt = (...segs) => {
     const fm = frontmatter(claudeDir, ...segs, 'SKILL.md');
-    return { id: segs.at(-1), skillName: fm.name || segs.at(-1), description: fm.description || '' };
+    return { id: segs.at(-1), skillName: fm.name || segs.at(-1), description: fm.description || '', doc: { root: claudeDir, path: segs.join('/') } };
   };
   const skillsIn = (...segs) => dirNames(claudeDir, ...segs).filter((d) => isSkill(...segs, d)).sort().map((d) => skillAt(...segs, d));
   // Installers link user skills in from elsewhere (~/.claude/skills/x -> ~/.agents/skills/x), which resolveInside rejects. Only the
@@ -253,7 +253,7 @@ export function readGlobalSkills(claudeDir) {
     try { target = fs.realpathSync.native(/*turbopackIgnore: true*/ path.join(e.parentPath, e.name)); } catch { return []; } // dangling link
     if (!fileNames(target).includes('SKILL.md')) return [];
     const fm = frontmatter(target, 'SKILL.md');
-    return [{ id: e.name, skillName: fm.name || e.name, description: fm.description || '' }];
+    return [{ id: e.name, skillName: fm.name || e.name, description: fm.description || '', doc: { root: target, path: '' } }];
   });
   const skills = [...skillsIn('skills'), ...linked].sort((a, b) => (a.id < b.id ? -1 : 1)).map((s) => ({ ...s, plugin: null }));
   const settings = readJson(inside(claudeDir, 'settings.json') ?? '');
@@ -268,10 +268,30 @@ export function readGlobalSkills(claudeDir) {
     const home = path.relative(claudeDir, entry.installPath).split(path.sep);
     // plugin.json "skills" adds skill folders, or folders of skills, relative to the plugin root (mattpocock-skills uses it).
     const manifest = readJson(inside(claudeDir, ...home, '.claude-plugin', 'plugin.json') ?? '');
-    const listed = (manifest.ok ? [manifest.value?.skills].flat() : []).filter((p) => typeof p === 'string').map((p) => [...home, ...p.split('/')]);
+    const listed = (manifest.ok ? [manifest.value?.skills].flat() : []).filter((p) => typeof p === 'string')
+      .map((p) => [...home, ...p.split('/').filter((s) => s && s !== '.')]);
     const found = [...skillsIn(...home, 'skills'), ...listed.flatMap((segs) => (isSkill(...segs) ? [skillAt(...segs)] : skillsIn(...segs)))];
     for (const s of new Map(found.map((f) => [f.skillName, f])).values()) skills.push({ ...s, skillName: `${plugin}:${s.skillName}`, plugin });
   }
   const broken = [['settings.json', settings], ['plugins/installed_plugins.json', installed]].find(([, r]) => !r.ok && r.error !== 'missing');
   return { error: broken ? `${broken[0]} di folder Claude Code rusak` : null, skills };
+}
+
+/** @typedef {{ format: 'markdown' | 'text', file: string, text: string }} ItemDoc */
+
+// What an item does, in its own words, for the Skill detail page: the body of <folder>/SKILL.md or of a command .md file
+// (frontmatter removed), or a tool's module docstring (.py). null when there is none. `rel` comes from the catalog, never the URL.
+/** @param {string} root @param {string | null} rel @returns {ItemDoc | null} */
+export function readItemDoc(root, rel) {
+  if (rel === null) return null;
+  const segs = rel ? rel.split('/') : [];
+  if (rel.endsWith('.py')) {
+    // Shebang, comments and blank lines may come first; the docstring is the first statement.
+    const m = /^(?:[ \t]*(?:#[^\n]*)?\r?\n)*[ \t]*[rRuU]?("""|''')([\s\S]*?)\1/.exec(readText(root, ...segs));
+    const text = m ? m[2].replace(/\r\n/g, '\n').trim() : '';
+    return text ? { format: 'text', file: rel, text } : null;
+  }
+  const file = rel.endsWith('.md') ? segs : [...segs, 'SKILL.md'];
+  const text = readText(root, ...file).replace(/^﻿?---\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/, '').replace(/\r\n/g, '\n').trim();
+  return text ? { format: 'markdown', file: file.filter(Boolean).join('/'), text } : null;
 }

@@ -180,7 +180,7 @@ The dashboard interface is in Indonesian. The table gives each page with its Eng
 | **Video** | Gallery | Watch, filter and download finished videos. |
 | **Eksekusi** | Executions | Follow runs live: the stage timeline, skills, files, commands and review frames. |
 | **Referensi Desain** | Design references | Browse templates, brands, examples, transitions and components. |
-| **Skill & Tools** | Skills and tools | Search the skills, commands and tools in the workspace, plus the skills installed in Claude Code (user skills and plugins such as HyperFrames), grouped by category, with ready/needs-key status and usage statistics. |
+| **Skill & Tools** | Skills and tools | Search a table of the skills, commands and tools in the workspace, plus the skills installed in Claude Code (user skills and plugins such as HyperFrames), with API-key and ready status. Each row opens a detail page with what it does, how to run it, its keys, usage statistics and the full SKILL.md, command file or tool docstring. |
 | **Cara Kerja** | How it works | See the pipeline diagram, costs, status definitions and trigger options. |
 | **Pengaturan** | Settings | See tool versions, the state of the hooks and command, and which API keys are set. |
 

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, it } from 'vitest';
-import { allEnvKeys, envStatus, readCatalog, readGlobalSkills, readiness, repoContextForValidation, templateInfo } from './catalog.mjs';
+import { allEnvKeys, envStatus, readCatalog, readGlobalSkills, readItemDoc, readiness, repoContextForValidation, templateInfo } from './catalog.mjs';
 import { makeFixtureRepo, makeTempRoot } from './test-utils.mjs';
 
 const realRoot = path.resolve(import.meta.dirname, '..', '..');
@@ -71,7 +71,7 @@ it('readGlobalSkills: skill pengguna dan plugin aktif, tanpa keluar dari folder 
   fs.writeFileSync(path.join(outside, 'skills', 'evil', 'SKILL.md'), skill('name: evil'));
   // A user skill linked in from elsewhere is read (its SKILL.md only); a dangling link and a linked non-skill folder are not.
   fs.mkdirSync(path.join(outside, 'agents', 'linked'), { recursive: true });
-  fs.writeFileSync(path.join(outside, 'agents', 'linked', 'SKILL.md'), skill('name: linked', 'description: Lewat tautan'));
+  fs.writeFileSync(path.join(outside, 'agents', 'linked', 'SKILL.md'), `${skill('name: linked', 'description: Lewat tautan')}Isi tautan\n`);
   fs.mkdirSync(path.join(outside, 'agents', 'plain'));
   fs.mkdirSync(path.join(outside, 'agents', 'gone'));
   for (const name of ['linked', 'plain', 'gone']) fs.symlinkSync(path.join(outside, 'agents', name), path.join(dir, 'skills', name), 'junction');
@@ -84,7 +84,14 @@ it('readGlobalSkills: skill pengguna dan plugin aktif, tanpa keluar dari folder 
     'proj@m': [{ scope: 'project', installPath: path.join(dir, 'plugins', 'cache', 'm', 'hf', '1.0') }],
   } }));
   write('settings.json', JSON.stringify({ enabledPlugins: { 'hf@m': true, 'off@m': false, 'evil@m': true, 'proj@m': true } }));
-  expect(readGlobalSkills(dir)).toEqual({ error: null, skills: [
+  const g = readGlobalSkills(dir);
+  // doc points at where SKILL.md was found: the link target for a linked skill, the plugin folder for a plugin skill.
+  expect(g.skills.map((s) => s.doc.path)).toEqual([
+    '', 'skills/mine', 'plugins/cache/m/hf/1.0/skills/hyperframes', 'plugins/cache/m/hf/1.0/skills/eng/tdd', 'plugins/cache/m/hf/1.0/extra/grill',
+  ]);
+  expect(g.skills.slice(1).every((s) => s.doc.root === dir)).toBe(true);
+  expect(readItemDoc(g.skills[0].doc.root, g.skills[0].doc.path)).toEqual({ format: 'markdown', file: 'SKILL.md', text: 'Isi tautan' });
+  expect({ ...g, skills: g.skills.map((s) => ({ ...s, doc: undefined })) }).toEqual({ error: null, skills: [
     { id: 'linked', skillName: 'linked', description: 'Lewat tautan', plugin: null },
     { id: 'mine', skillName: 'mine', description: 'Milik saya', plugin: null },
     { id: 'hyperframes', skillName: 'hf:hyperframes', description: 'Tulis HTML, render video.', plugin: 'hf' },
@@ -95,6 +102,22 @@ it('readGlobalSkills: skill pengguna dan plugin aktif, tanpa keluar dari folder 
   write('plugins/installed_plugins.json', '{');
   expect(readGlobalSkills(dir)).toMatchObject({ error: expect.stringContaining('installed_plugins.json'), skills: [{ id: 'linked' }, { id: 'mine' }] });
   expect(readGlobalSkills(path.join(dir, 'tidak-ada'))).toEqual({ error: null, skills: [] });
+});
+it('readItemDoc: isi SKILL.md, file command, dan docstring tool', () => {
+  const root = makeTempRoot();
+  const write = (rel, text) => { const p = path.join(root, ...rel.split('/')); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, text); };
+  write('.claude/skills/a/SKILL.md', ['---', 'name: a', 'description: >', '  A', '---', '', '# Skill A', 'Untuk apa.', ''].join('\r\n'));
+  write('.claude/commands/video.md', '---\ndescription: Video\n---\nLangkah 1\n');
+  write('.claude/commands/plain.md', 'Tanpa frontmatter\n');
+  write('tools/tts.py', ['#!/usr/bin/env python3', '# -*- coding: utf-8 -*-', '', '"""', 'Buat suara.', '', 'Usage:', '    uv run tools/tts.py', '"""', 'import os', ''].join('\r\n'));
+  write('tools/one.py', "r'''Satu baris.'''\n");
+  write('tools/none.py', 'import os\n"""bukan docstring"""\n');
+  expect(readItemDoc(root, '.claude/skills/a')).toEqual({ format: 'markdown', file: '.claude/skills/a/SKILL.md', text: '# Skill A\nUntuk apa.' });
+  expect(readItemDoc(root, '.claude/commands/video.md')).toEqual({ format: 'markdown', file: '.claude/commands/video.md', text: 'Langkah 1' });
+  expect(readItemDoc(root, '.claude/commands/plain.md')?.text).toBe('Tanpa frontmatter');
+  expect(readItemDoc(root, 'tools/tts.py')).toEqual({ format: 'text', file: 'tools/tts.py', text: 'Buat suara.\n\nUsage:\n    uv run tools/tts.py' });
+  expect(readItemDoc(root, 'tools/one.py')?.text).toBe('Satu baris.');
+  for (const rel of ['tools/none.py', 'tools/missing.py', '.claude/skills/nope', '../outside.md', null]) expect(readItemDoc(root, rel), String(rel)).toBeNull();
 });
 it('registry rusak tidak menjatuhkan katalog', () => {
   const root = makeFixtureRepo(); fs.writeFileSync(path.join(root, '_internal', 'toolkit-registry.json'), '{');

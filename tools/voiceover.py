@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate voiceover audio using ElevenLabs or Qwen3-TTS.
+Generate voiceover audio using ElevenLabs, Qwen3-TTS, 60db or Edge TTS (free, no API key).
 
 Usage:
     # From script file (ElevenLabs, default)
