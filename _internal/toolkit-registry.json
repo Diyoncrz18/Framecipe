@@ -10,9 +10,9 @@
       "status": "stable",
       "upstream": "https://github.com/remotion-dev/skills",
       "created": "2026-02-19",
-      "updated": "2026-10-19",
+      "updated": "2026-10-26",
       "upstreamPath": "skills/remotion-best-practices",
-      "upstreamVersion": "4.0.536",
+      "upstreamVersion": "4.0.539",
       "category": "composition"
     },
     "remotion": {
