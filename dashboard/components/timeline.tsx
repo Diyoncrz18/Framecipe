@@ -1,12 +1,12 @@
 "use client";
 
-import { Bell, Bot, CircleX, FileText, Flag, LogIn, LogOut, MessageSquare, Sparkles, Square, Terminal, Wrench, type LucideIcon } from "lucide-react";
+import { Bell, Bot, CircleX, FileText, Flag, LoaderCircle, LogIn, LogOut, MessageSquare, Sparkles, Square, Terminal, Wrench, type LucideIcon } from "lucide-react";
 import { useId, useState } from "react";
 import { EVENT_LABELS } from "@/core/labels.mjs";
 import { formatMs } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export type TimelineEvent = { ts: string; type: string; summary: string; ok: boolean | null; error?: string; durationMs?: number };
+export type TimelineEvent = { ts: string; type: string; summary: string; ok: boolean | null; error?: string; durationMs?: number; running?: boolean };
 
 const ICONS: Record<string, LucideIcon> = {
   prompt: MessageSquare, skill: Sparkles, command: Terminal, file: FileText, agent: Bot, tool: Wrench,
@@ -43,32 +43,44 @@ export function Timeline({ events }: { events: TimelineEvent[] }) {
 
       {shown.length === 0 ? (
         <p className="text-muted-foreground">{events.length === 0 ? "Belum ada event." : "Tidak ada event untuk jenis ini."}</p>
-      ) : (
-        <ol aria-label="Linimasa eksekusi" className="flex flex-col text-sm">
-          {shown.map((e, i) => {
-            const Icon = ICONS[e.type] ?? Flag;
-            return (
-              <li key={i} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b py-1.5 last:border-0">
-                <time dateTime={e.ts} suppressHydrationWarning className="tabular-nums text-muted-foreground">{clock(e.ts)}</time>
-                <span className="flex w-32 shrink-0 items-center gap-1.5 font-medium">
-                  <Icon aria-hidden="true" className="size-4 shrink-0" />
-                  {(EVENT_LABELS as Record<string, string>)[e.type] ?? e.type}
-                </span>
-                <span className={cn("min-w-0 flex-1 break-words", e.type === "command" && "font-mono text-xs")}>
-                  {e.summary}
-                  {e.ok === false && (
-                    <span className="mt-0.5 flex items-start gap-1.5 font-sans text-sm text-destructive">
-                      <CircleX aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-                      <span><span className="font-medium">gagal</span>{e.error ? `: ${e.error}` : ""}</span>
-                    </span>
-                  )}
-                </span>
-                {e.durationMs != null && <span className="tabular-nums text-muted-foreground">{formatMs(e.durationMs)}</span>}
-              </li>
-            );
-          })}
-        </ol>
-      )}
+      ) : <EventList events={shown} />}
     </div>
+  );
+}
+
+// The rows alone, also used by the compact live panels on /alur.
+export function EventList({ events, label = "Linimasa eksekusi" }: { events: TimelineEvent[]; label?: string }) {
+  return (
+    <ol aria-label={label} className="flex flex-col text-sm">
+      {events.map((e, i) => {
+        const Icon = ICONS[e.type] ?? Flag;
+        return (
+          <li key={i} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b py-1.5 last:border-0">
+            <time dateTime={e.ts} suppressHydrationWarning className="tabular-nums text-muted-foreground">{clock(e.ts)}</time>
+            <span className="flex w-32 shrink-0 items-center gap-1.5 font-medium">
+              <Icon aria-hidden="true" className="size-4 shrink-0" />
+              {(EVENT_LABELS as Record<string, string>)[e.type] ?? e.type}
+            </span>
+            {/* min-w-48: on a phone the text wraps under the time and type instead of shrinking to a few letters per line. */}
+            <span className={cn("min-w-48 flex-1 break-words", e.type === "command" && "font-mono text-xs")}>
+              {e.summary}
+              {e.running && (
+                <span className="mt-0.5 flex items-center gap-1.5 font-sans text-sm text-blue-800 dark:text-blue-300">
+                  <LoaderCircle aria-hidden="true" className="size-4 shrink-0 motion-safe:animate-spin" />
+                  <span className="font-medium">sedang berjalan</span>
+                </span>
+              )}
+              {e.ok === false && (
+                <span className="mt-0.5 flex items-start gap-1.5 font-sans text-sm text-destructive">
+                  <CircleX aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+                  <span><span className="font-medium">gagal</span>{e.error ? `: ${e.error}` : ""}</span>
+                </span>
+              )}
+            </span>
+            {e.durationMs != null && <span className="tabular-nums text-muted-foreground">{formatMs(e.durationMs)}</span>}
+          </li>
+        );
+      })}
+    </ol>
   );
 }

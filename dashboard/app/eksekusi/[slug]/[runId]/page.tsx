@@ -12,7 +12,7 @@ import { Timeline, type TimelineEvent } from "@/components/timeline";
 import { SOURCE_KIND_LABELS } from "@/core/labels.mjs";
 import { resolveInside } from "@/core/paths.mjs";
 import { retryPrompt } from "@/core/requests.mjs";
-import { listRuns, readRunDetail } from "@/core/runs.mjs";
+import { activityFeed, listRuns, readRunDetail } from "@/core/runs.mjs";
 import { formatBytes, formatDuration } from "@/lib/format";
 import { mediaUrl } from "@/lib/media";
 import { isLive } from "@/lib/run-status";
@@ -78,14 +78,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   const frames: string[] = d.frames;
   const sources: { name: string; kind: keyof typeof SOURCE_KIND_LABELS; sizeBytes: number }[] = run.sources ?? [];
   const status = d.displayStatus as DisplayStatus;
-  const ended = new Set(d.timeline.filter((e) => e.phase === "end" && e.toolUseId).map((e) => e.toolUseId));
-  // A command logs a start and an end event; once it has ended, the end row (with its length) stands for both.
-  const events: TimelineEvent[] = d.timeline
-    .filter((e) => !(e.phase === "start" && ended.has(e.toolUseId)))
-    .map((e) => ({
-      ts: e.ts, type: e.type, summary: e.summary ?? "", ok: e.ok ?? null, error: e.error,
-      durationMs: typeof e.detail?.durationMs === "number" ? e.detail.durationMs : undefined,
-    }));
+  const events: TimelineEvent[] = activityFeed(d.timeline, status === "running");
 
   return (
     <div className="flex flex-col gap-8">

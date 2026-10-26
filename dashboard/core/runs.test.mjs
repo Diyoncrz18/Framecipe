@@ -2,9 +2,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, it, vi } from 'vitest';
 import { appendJsonLine, writeJsonAtomic } from './jsonfile.mjs';
-import { displayStatus, listRuns, markRunFailed, readRunDetail, runWindowEvents, skillUsage, summarizeRun } from './runs.mjs';
+import {
+  activityFeed, displayStatus, listActiveSessions, listRuns, markRunFailed, readRunDetail, recentActivity, runWindowEvents, skillUsage, summarizeRun,
+} from './runs.mjs';
 import { readActiveRun, readRun, runPaths, sessionEventsPath, writeActiveRun, writeRun } from './run-store.mjs';
 import { fixtureFlow, makeFixtureRepo } from './test-utils.mjs';
+
+// Appends [ 'HH:MM:SS', type, summary, extra? ] rows (2026-10-24 UTC) to a session's log.
+function logEvents(root, sid, events) {
+  for (const [hms, type, summary, extra] of events) {
+    appendJsonLine(sessionEventsPath(root, sid), { ts: `2026-10-24T${hms}.000Z`, sessionId: sid, runId: null, type, tool: null, summary, ok: true, ...extra });
+  }
+}
 
 // A fixture repo with one run (project "alpha") built from opts. Everything is on 2026-10-24 UTC.
 //   root (add the run to an existing repo), status, stage, stagesEntered (default [stage]; every entered stage is closed except the current one of a running/waiting run),
@@ -27,11 +36,7 @@ function seedRun(o = {}) {
   };
   writeRun(root, run);
   writeJsonAtomic(runPaths(root, project, runId).flowFile, fixtureFlow());
-  for (const [sid, events] of Object.entries(o.events ?? {})) {
-    for (const [hms, type, summary, extra] of events) {
-      appendJsonLine(sessionEventsPath(root, sid), { ts: `2026-10-24T${hms}.000Z`, sessionId: sid, runId: null, type, tool: null, summary, ok: true, ...extra });
-    }
-  }
+  for (const [sid, events] of Object.entries(o.events ?? {})) logEvents(root, sid, events);
   if (o.active) writeActiveRun(root, { runId, project, sessionId: run.sessionId, startedAt });
   return { root, project, runId };
 }
@@ -254,4 +259,44 @@ it('log sesi dibaca sekali per readRunDetail', () => {
     listRuns(root, NOW);
     expect(spy.mock.calls.filter(([file]) => file === log)).toHaveLength(1);
   } finally { spy.mockRestore(); }
+});
+
+it('activityFeed: start yang sudah selesai digabung ke baris akhirnya, start terbuka berjalan hanya bila sesi masih hidup', () => {
+  const events = [
+    { ts: 't1', type: 'command', phase: 'start', toolUseId: 'a', summary: 'npm test', ok: null },
+    { ts: 't2', type: 'command', phase: 'end', toolUseId: 'a', summary: 'npm test', ok: true, detail: { durationMs: 1200 } },
+    { ts: 't3', type: 'stop', ok: true },
+    { ts: 't4', type: 'command', phase: 'start', toolUseId: 'b', summary: 'node dashboard/bin/run.mjs render', ok: null },
+  ];
+  expect(activityFeed(events, true)).toEqual([
+    { ts: 't2', type: 'command', summary: 'npm test', ok: true, error: undefined, durationMs: 1200, running: false },
+    { ts: 't3', type: 'stop', summary: '', ok: true, error: undefined, durationMs: undefined, running: false },
+    { ts: 't4', type: 'command', summary: 'node dashboard/bin/run.mjs render', ok: null, error: undefined, durationMs: undefined, running: true },
+  ]);
+  expect(activityFeed(events).at(-1).running).toBe(false); // an open start in a session that is over was cut off
+});
+it('recentActivity: n baris terakhir tanpa event Tool, ditambah yang masih berjalan', () => {
+  const row = (summary, type = 'command', running = false) => ({ summary, type, running });
+  const feed = [row('jalan', 'command', true), row('a'), row('Read', 'tool'), row('b'), row('c'), row('Grep', 'tool')];
+  expect(recentActivity(feed, 2).map(e => e.summary)).toEqual(['jalan', 'b', 'c']);
+  expect(recentActivity([])).toEqual([]);
+});
+it('listActiveSessions: sesi aktif 15 menit terakhir, terbaru dulu; sesi selesai, lama, atau dikecualikan tidak ikut', () => {
+  const root = makeFixtureRepo();
+  expect(listActiveSessions(root, NOW)).toEqual([]); // no events folder yet
+  logEvents(root, 'kerja', [['01:58:00', 'prompt', 'Perbaiki tombol arsip'], ['01:59:00', 'command', 'npm test', { phase: 'start', toolUseId: 'x', ok: null }]]);
+  logEvents(root, 'berhenti', [['01:50:00', 'prompt', '/buat-video req=7f3a'], STOP, IDLE]);
+  logEvents(root, 'izin', [['01:57:00', 'prompt', 'Render'], PERMISSION]);
+  logEvents(root, 'tutup', [['01:59:30', 'prompt', 'x'], ['01:59:40', 'session-end', '', { detail: { reason: 'logout' } }]]);
+  logEvents(root, 'basi', [['01:40:00', 'prompt', 'lama']]); // last event 20 minutes before NOW
+  logEvents(root, 'run', [['01:59:50', 'prompt', 'run aktif']]);
+  logEvents(root, 'arsip', [['01:59:50', 'prompt', 'file lama']]);
+  const old = new Date('2026-10-24T01:00:00Z');
+  fs.utimesSync(sessionEventsPath(root, 'arsip'), old, old); // the file time decides before the log is read
+
+  const sessions = listActiveSessions(root, NOW, { exclude: 'run' });
+  expect(sessions.map(s => [s.sessionId, s.status])).toEqual([['kerja', 'running'], ['izin', 'waiting-permission'], ['berhenti', 'stopped']]);
+  expect(sessions[0]).toMatchObject({ prompt: 'Perbaiki tombol arsip', lastActivityAt: '2026-10-24T01:59:00.000Z' });
+  expect(sessions[0].activity.map(e => [e.summary, e.running])).toEqual([['Perbaiki tombol arsip', false], ['npm test', true]]);
+  expect(listActiveSessions(root, NOW).map(s => s.sessionId)).toContain('run');
 });

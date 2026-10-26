@@ -161,7 +161,7 @@ The dashboard interface is in Indonesian. The table gives each page with its Eng
 | Page | Meaning | What you do there |
 |---|---|---|
 | **Beranda** | Home | Create a video request, see the active run, check system health, and see the latest videos. |
-| **Alur** | Recipes | Create, edit, duplicate and archive recipes. |
+| **Alur** | Recipes | Create, edit, duplicate and archive recipes. A live panel shows the active run's stages and latest steps, plus every Claude Code session working in the repo. |
 | **Video** | Gallery | Watch, filter and download finished videos. |
 | **Eksekusi** | Executions | Follow runs live: the stage timeline, skills, files, commands and review frames. |
 | **Referensi Desain** | Design references | Browse templates, brands, examples, transitions and components. |

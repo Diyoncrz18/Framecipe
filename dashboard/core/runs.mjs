@@ -6,7 +6,7 @@ import { readJson, readJsonLines, writeJsonAtomic } from './jsonfile.mjs';
 import { STAGE_LABELS, STATUS_LABELS } from './labels.mjs';
 import { resolveInside } from './paths.mjs';
 import { listProjectRuns } from './projects.mjs';
-import { clearActiveRun, lastActivityAt, readActiveRun, readRun, runPaths, sessionEventsPath } from './run-store.mjs';
+import { clearActiveRun, lastActivityAt, readActiveRun, readRun, runPaths, safeSessionId, sessionEventsPath } from './run-store.mjs';
 
 const FAILED_LIKE = new Set(['failed', 'abandoned', 'cancelled']); // display statuses of a run that ended without success: its current stage failed
 const READ_TOOLS = new Set(['Read', 'Grep', 'Glob']);
@@ -61,6 +61,46 @@ export function effectiveStatus(root, run, now, events) {
   if (run.status !== 'running') return displayStatus(run, null, new Date(run.startedAt), now);
   const all = events ?? sessionEvents(root, run.sessionId);
   return displayStatus(run, statusEvent(all), lastActivityAt(root, run, all), now);
+}
+
+// Timeline rows. A command or subagent logs a start and an end event; once it has ended, the end row (with its length) stands for both.
+// `live`: the session can still move, so a start without its end is still going (`running`); in one that is over it was cut off.
+export function activityFeed(events, live = false) {
+  const ended = new Set(events.filter((e) => e.phase === 'end' && e.toolUseId).map((e) => e.toolUseId));
+  return events.filter((e) => !(e.phase === 'start' && ended.has(e.toolUseId))).map((e) => ({
+    ts: e.ts, type: e.type, summary: e.summary ?? '', ok: e.ok ?? null, error: e.error,
+    durationMs: typeof e.detail?.durationMs === 'number' ? e.detail.durationMs : undefined,
+    running: live && e.phase === 'start',
+  }));
+}
+
+// A compact view: the last `n` rows that are not tool events (every Read, Grep and Glob would bury the rest), plus anything still running.
+export function recentActivity(feed, n = 8) {
+  const rows = feed.filter((e) => e.type !== 'tool');
+  return rows.filter((e, i) => e.running || i >= rows.length - n);
+}
+
+// Claude Code sessions in this repo with activity in the last `windowMs`, newest first: any task, not only video runs (hooks log every session).
+// The log's modified time picks the candidates, so old logs are never read; a session whose last event is session-end is over.
+// `exclude`: a session already shown elsewhere (the active run's).
+export function listActiveSessions(root, now = new Date(), { exclude = null, windowMs = 900000 } = {}) {
+  const skip = exclude ? safeSessionId(exclude) : null;
+  const recent = (t) => now.getTime() - t <= windowMs;
+  return attempt(() => fs.readdirSync(resolveInside(root, '.dashboard', 'events'), { withFileTypes: true }), [])
+    .filter((e) => e.isFile() && e.name.endsWith('.jsonl'))
+    .map((e) => e.name.slice(0, -'.jsonl'.length))
+    .filter((id) => id !== skip && attempt(() => recent(fs.statSync(sessionEventsPath(root, id)).mtimeMs), false))
+    .flatMap((sessionId) => {
+      const all = sessionEvents(root, sessionId);
+      const last = all.at(-1);
+      if (!last || last.type === 'session-end' || !recent(ms(last.ts))) return [];
+      const status = displayStatus({ status: 'running' }, statusEvent(all), new Date(last.ts), now, windowMs);
+      return [{
+        sessionId, status, lastActivityAt: last.ts, prompt: all.findLast((e) => e.type === 'prompt')?.summary ?? null,
+        activity: recentActivity(activityFeed(all, status === 'running')),
+      }];
+    })
+    .sort((a, b) => ms(b.lastActivityAt) - ms(a.lastActivityAt));
 }
 
 export function summarizeRun(events, plannedSkills = []) {

@@ -14,7 +14,8 @@ const detailHref = (project: string, runId: string) => `/eksekusi/${encodeURICom
 const elapsedSeconds = (startedAt: string, endedAt: string | null) => ((endedAt ? Date.parse(endedAt) : Date.now()) - Date.parse(startedAt)) / 1000;
 
 // BRD-01. `detail` is null when the active marker points at a run.json that is missing or broken (NFR-07).
-export function ActiveRunCard({ active, detail }: { active: { project: string; runId: string } | null; detail: Detail | null }) {
+// `children`: extra live detail of a readable run (the stage bar and recent activity on /alur), shown above the link.
+export function ActiveRunCard({ active, detail, children }: { active: { project: string; runId: string } | null; detail: Detail | null; children?: React.ReactNode }) {
   const link = active && (
     <Link href={detailHref(active.project, active.runId)} className="w-fit text-sm underline underline-offset-2">Detail</Link>
   );
@@ -49,6 +50,7 @@ export function ActiveRunCard({ active, detail }: { active: { project: string; r
             ))}
           </ul>
         ) : <p className="text-sm text-muted-foreground">Belum ada skill dipakai.</p>}
+        {children}
         {link}
       </>
     );

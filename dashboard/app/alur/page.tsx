@@ -1,12 +1,20 @@
-import { CircleAlert, CircleCheck, TriangleAlert, type LucideIcon } from "lucide-react";
+import { CircleAlert, CircleCheck, LoaderCircle, TriangleAlert, type LucideIcon } from "lucide-react";
 import Link from "next/link";
+import { ActiveRunCard } from "@/components/active-run-card";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { ArchiveButton } from "@/components/flow-editor/archive-button";
 import { DuplicateButton } from "@/components/flow-editor/duplicate-button";
+import { SessionsCard } from "@/components/sessions-card";
+import { StageBar, type Stage } from "@/components/stage-bar";
+import { EventList, type TimelineEvent } from "@/components/timeline";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { listFlows } from "@/core/flows.mjs";
+import { readActiveRun } from "@/core/run-store.mjs";
+import { activityFeed, listActiveSessions, readRunDetail, recentActivity } from "@/core/runs.mjs";
 import { formatDate } from "@/lib/format";
+import { isLive } from "@/lib/run-status";
 import { ROOT } from "@/lib/root";
 import { duplicateFlowAction } from "./actions";
 
@@ -26,12 +34,34 @@ function status(f: Flow): { label: string; icon: LucideIcon; className: string; 
 
 export default function Page() {
   const flows = listFlows(ROOT);
+  const active = readActiveRun(ROOT);
+  const detail = active ? readRunDetail(ROOT, active.project, active.runId) : null;
+  const activity: TimelineEvent[] = detail ? recentActivity(activityFeed(detail.timeline, detail.displayStatus === "running")) : [];
+  const inUse = detail && isLive(detail.displayStatus) ? detail.run.flow : null;
+  // The active run's session is already in its own card.
+  const sessions = listActiveSessions(ROOT, new Date(), { exclude: active?.sessionId });
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Always on, like Beranda: an idle page must pick up a run or a Claude Code session that starts later. */}
+      <AutoRefresh intervalMs={2000} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Alur</h1>
         <Link href="/alur/baru" className={buttonVariants()}>Buat alur</Link>
+      </div>
+
+      <div className="grid items-start gap-4 xl:grid-cols-2">
+        <ActiveRunCard active={active} detail={detail}>
+          {detail && (
+            <>
+              <StageBar stages={detail.stages as Stage[]} />
+              {activity.length
+                ? <EventList events={activity} label="Aktivitas run aktif" />
+                : <p className="text-sm text-muted-foreground">Belum ada event.</p>}
+            </>
+          )}
+        </ActiveRunCard>
+        <SessionsCard sessions={sessions} />
       </div>
 
       {flows.length === 0 ? (
@@ -50,6 +80,12 @@ export default function Page() {
                   <TableCell className={`${WRAP} font-medium`}>
                     <Link href={`/alur/${encodeURIComponent(f.id)}`} className="underline underline-offset-2">{f.name}</Link>
                     {f.name !== f.id && <span className="block text-xs font-normal text-muted-foreground">{f.id}</span>}
+                    {f.id === inUse && (
+                      <Badge variant="outline" className="mt-1 border-transparent bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-200">
+                        <LoaderCircle aria-hidden="true" className="motion-safe:animate-spin" />
+                        Sedang dipakai
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell className={WRAP}>{f.template ?? DASH}</TableCell>
                   <TableCell className={WRAP}>{f.brand ?? DASH}</TableCell>

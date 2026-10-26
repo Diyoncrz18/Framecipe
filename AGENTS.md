@@ -70,7 +70,7 @@ The dashboard never starts Claude by itself (a one-click "Generate" button is a 
 | `source-files.mjs` | Browser-safe: allowed source extensions per kind, limits, `sourceKind`. |
 | `run-ops.mjs` | Run lifecycle behind run.mjs: start, stage, wait, fail, status, audio, install, render, stills, finish. |
 | `run-store.mjs` | Paths and reads of run state; Node built-ins only (used by the hook). |
-| `runs.mjs` | Effective display status, timeline, summary, skill usage, markRunFailed. |
+| `runs.mjs` | Effective display status, timeline, activity feed, summary, skill usage, markRunFailed; `listActiveSessions` (every Claude Code session in the repo with activity in the last 15 min, any task). |
 | `hook-events.mjs` | Claude Code hook payload → event line; binds a session to a run only on a successful `node … run.mjs start`. |
 | `projects.mjs` | projects/ for gallery and project pages. |
 | `catalog.mjs` | toolkit-registry.json merged with what is really on disk (skills, templates, brands, examples, tools); readiness per item; global skills from `~/.claude` (user skills and enabled plugins); `readItemDoc` (SKILL.md / command body, tool docstring) for the Skill detail page. |
@@ -85,7 +85,7 @@ The dashboard never starts Claude by itself (a one-click "Generate" button is a 
 
 ### Dashboard pages (UI is Indonesian)
 
-Beranda `/` (request form, active run, health, latest videos) · Alur `/alur` (recipes, editor `/alur/[id]`, `/alur/baru`) · Video `/video` (gallery, `/video/[slug]`) · Eksekusi `/eksekusi` (runs, live detail `/eksekusi/[slug]/[runId]`) · Referensi Desain `/referensi` · Skill & Tools `/skill` (table, detail `/skill/[tab]/[key]`) · Cara Kerja `/cara-kerja` · Pengaturan `/pengaturan`. Shell: grouped sidebar, header breadcrumb, Ctrl+K page palette, light/dark/system theme toggle.
+Beranda `/` (request form, active run, health, latest videos) · Alur `/alur` (live active run and Claude Code sessions, recipes, editor `/alur/[id]`, `/alur/baru`) · Video `/video` (gallery, `/video/[slug]`) · Eksekusi `/eksekusi` (runs, live detail `/eksekusi/[slug]/[runId]`) · Referensi Desain `/referensi` · Skill & Tools `/skill` (table, detail `/skill/[tab]/[key]`) · Cara Kerja `/cara-kerja` · Pengaturan `/pengaturan`. Shell: grouped sidebar, header breadcrumb, Ctrl+K page palette, light/dark/system theme toggle.
 
 ## 3. Tech stack
 

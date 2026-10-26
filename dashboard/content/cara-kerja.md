@@ -28,7 +28,7 @@ Cara utama lewat dashboard:
 
    Bila ingin menyunting bahan Anda sendiri, lampirkan **File sumber** lewat **Pilih file** atau **Pilih folder**: video asli, audio (musik atau suara), gambar, atau teks seperti naskah, subtitle, dan data. Maksimal 2 GB per file dan 20 file. File diunggah ke `.dashboard/uploads/` saat Anda membuat prompt, lalu disalin ke `public/sources/` milik proyek saat video dibuat; file aslinya tidak pernah dihapus. Tulis di Catatan cara memakainya, misalnya "potong jadi 30 detik dan pakai musik ini sebagai latar".
 2. Salin prompt itu, lalu tempel di chat Claude Code yang dibuka di folder repo utama.
-3. Claude mengambil permintaan itu, memulai run, dan mengerjakan video tahap demi tahap. Pantau di halaman Eksekusi.
+3. Claude mengambil permintaan itu, memulai run, dan mengerjakan video tahap demi tahap. Pantau di halaman Eksekusi, atau di bagian atas halaman Alur: kartu **Run aktif** menampilkan tahap dan langkah terakhir run, dan kartu **Sesi Claude Code** menampilkan sesi Claude Code lain di repo ini yang aktif dalam 15 menit terakhir, termasuk pekerjaan selain video. Keduanya diperbarui setiap 2 detik, dan perintah yang belum selesai ditandai "sedang berjalan".
 
 Cara lain, langsung di chat Claude Code:
 
