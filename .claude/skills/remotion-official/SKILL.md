@@ -1,7 +1,7 @@
 ---
 name: remotion-best-practices
 description: Router for all Remotion skills
-version: 4.0.536
+version: 4.0.544
 ---
 
 ## Preserve user changes
@@ -30,9 +30,12 @@ For static maps, animated routes and markers, geographic explainers, Mapbox, Map
 
 For achieving multimedia tasks in the browser, such as trimming, cropping videos, or getting metadata from them, load [Remotion Multimedia](./remotion-multimedia/REFERENCE.md)
 
-## Improving Interactivity
+For video matting, background removal, or placing content behind a subject,
+load [Remotion Markup](./remotion-markup/REFERENCE.md).
 
-By structuring the Remotion markup well, we can allow users to interactively change things in the Studio and write back to code. If relevant: [Interactivity Best Practices](./remotion-interactivity/REFERENCE.md)
+## Interactivity
+
+New markup is editable in Studio by default. When writing or restructuring markup, load [Interactivity Best Practices](./remotion-interactivity/REFERENCE.md).
 
 ## Open the preview
 
@@ -103,6 +106,10 @@ Use the [Remotion SaaS skill](./remotion-saas/REFERENCE.md) for knowledge about 
 ## Looking up Remotion APIs and documentation
 
 To find and read current Remotion documentation, load [Remotion Docs](./remotion-docs/REFERENCE.md).
+
+## Licensing
+
+For Remotion license information, FAQs, terms, or buying a license, load [Remotion License](./remotion-license/REFERENCE.md).
 
 ## Upgrading
 

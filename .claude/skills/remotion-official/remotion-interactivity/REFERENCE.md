@@ -1,56 +1,29 @@
 ---
 name: remotion-interactivity
-description: Structure Remotion markup for interactivity
-version: 4.0.536
+description: Structures Remotion markup so layers, timing and styles are editable in Remotion Studio. Use when writing a new composition or restructuring existing markup.
+version: 4.0.544
 ---
 
-By writing Remotion markup in a specific way, the Remotion Studio is able to recognize the structure of the code and makes it interactive:
+Make markup editable in Studio by default. Keep a part programmatic only if it is
+generated from external data or computed per frame, and tell the user it won't be
+editable. Text you write yourself is not external data.
 
-- Allowing items to be selected by clicking on them
-- Allowing drag+drop, resizing and rotation
-- Editing the CSS styles
-- Making keyframes and easing values editable
+Studio edits the JSX nodes that create timeline items. Structure the code around
+what the user should be able to select, move, trim, or style independently.
+Keep editable values inline on each instance.
 
-If the markup is too complex for the Studio to make it interactive, then the values become grayed out.
+Before writing a scene or refactoring its layers, read
+[editable timeline structure](timeline-structure.md). It covers editing units,
+tracks, shared timing, plain layout containers, and a complete component-to-root
+example. For a timeline built from footage, also read
+[editable video timelines](../remotion-markup/video-editing.md).
 
-## Prefer interactive components with their own timelines
+Use [connected compositions](../remotion-markup/connected-compositions.md) when
+a scene or reusable group needs its own timeline. Validate both its standalone
+view and the full parent timeline; a connection alone does not guarantee fewer
+visible rows.
 
-Build new compositions with `Track`, connected compositions, and `Interactive.create()`.
-
-Set `layout` explicitly to `'absolute-fill'` for scenes or `'none'` for bounded elements. Register the same exported scene and reusable element components with `Composition`.
-
-Start with the complete [Track + connected compositions example](timeline-structure.md).
-It includes the element, scene, parent timeline, and root registrations.
-
-```tsx title="MyVideo.tsx"
-import {Track, useVideoConfig} from 'remotion';
-import {Chapter} from './Chapter';
-
-export const MyVideo = () => {
-  const {fps} = useVideoConfig();
-
-  return (
-    <Track name="Chapters">
-      <Chapter
-        name="Opening"
-        durationInFrames={3 * fps}
-        title="Introduction"
-      />
-      <Chapter
-        name="Feature"
-        from={3 * fps}
-        durationInFrames={4 * fps}
-        title="New features"
-      />
-    </Track>
-  );
-};
-```
-
-Put background and alignment styles on each scene instance, as shown in the
-complete example. Keep layout-only containers as plain HTML.
-
-### Choose schema fields
+## Choose schema fields
 
 Each key in the schema is a prop that Studio can read and edit at the call site.
 Props that are not in the schema still work, but are not editable in Studio.
@@ -100,103 +73,6 @@ Nested markup and computed children are currently read-only.
 `text-content` is a deprecated alias for the `string` field type.
 See [`InteractivitySchema`](https://www.remotion.dev/docs/interactivity-schema) for all options.
 
-### Register reusable components as connected compositions
-
-Register scenes and reusable elements as standalone compositions. Studio calls
-these **connected compositions**: they can be opened in their own timeline while
-sharing the same component implementation with the parent video.
-
-Define required styles and load fonts inside the component so it works without
-its parent. See
-[parent independence](../remotion-markup/connected-compositions.md#make-the-component-independent-of-its-parent).
-
-Register the same exported component reference that the parent renders. For the
-example above, use `component={Chapter}`, not `ChapterInner` or an inline wrapper.
-`Interactive.create()` provides the sequence, so no extra `<Sequence>` is needed for the connection.
-
-```tsx title="src/Root.tsx"
-import {Composition} from 'remotion';
-import {Chapter} from './Chapter';
-
-export const RemotionRoot = () => (
-  <Composition
-    id="Chapter"
-    component={Chapter}
-    width={1280}
-    height={720}
-    fps={30}
-    durationInFrames={90}
-    defaultProps={{
-      title: 'A new perspective',
-      style: {
-        backgroundColor: '#111111',
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
-    }}
-  />
-);
-```
-
-Choose a unique ID, representative inline defaults, and dimensions, fps, and
-duration suitable for previewing the component. Registration defaults do not
-automatically copy props from a parent instance. See
-[connected compositions](../remotion-markup/connected-compositions.md) for
-registration and extraction details.
-
-### Put timing directly on the component
-
-Avoid a separate `<Sequence>` around one component that already accepts timing
-props. Built-in interactive components and custom components made with
-`Interactive.create()` can receive `name`, `from`, `durationInFrames`,
-`trimBefore`, and `playbackRate` directly.
-
-```tsx
-<Chapter
-  name="Opening scene"
-  from={30}
-  durationInFrames={90}
-  style={{opacity: 0.9}}
-  title="A new perspective"
-/>
-```
-
-For shared scene timing, group the content in a component made with
-`Interactive.create()` and time that instance. Managed roots also accept
-`width` and `height` for `useVideoConfig()`.
-
-Use `<Track>` to put items on the same Studio timeline row.
-Use `<TransitionSeries>` when scenes are sequential.
-
-## Give every independently editable item its own JSX node
-
-The Studio edits the JSX source node that created an item. If multiple runtime
-items come from the same JSX node, they share one source-editing target.
-
-For every composition registration, clip, scene, layer or sequence that should
-be editable on its own, write a separate JSX node and keep its editable props
-on that node. This applies to `<Composition>`, `<Still>`, built-in media
-components, `<Sequence>`, `<TransitionSeries.Sequence>`
-and custom components.
-
-For example, author an editable timeline like this:
-
-```tsx title="Separate source nodes"
-import { Track } from "remotion";
-
-<Track name="Scenes">
-  <Introduction name="Introduction" durationInFrames={90} />
-  <Demo name="Demo" from={90} durationInFrames={150} />
-</Track>
-```
-
-A `.map()` or another programmatic loop would create multiple runtime items
-from one JSX source node. That is appropriate for repeated output that is
-intentionally controlled as one template, such as visualization bars or
-particles. It is not appropriate when the instances need independent IDs or
-names, props, metadata, timing, ordering, deletion or duplication in the
-Studio.
-
 ## Make an HTML element interactive using `Interactive`
 
 Every HTML and SVG element (except `<Img>`, it already is interactive) such as `<div>` can be turned interactive using `Interactive`:
@@ -210,7 +86,9 @@ Every HTML and SVG element (except `<Img>`, it already is interactive) such as `
 </Interactive.Div>
 ```
 
-This allows styles and keyframes to be set in the Studio. Be sensible, if a component has many elements, the timeline might get messy.
+Use this for text or graphics that need independent controls. Keep layout-only
+containers and decorative internals as plain HTML; an interactive component
+already provides controls for its root.
 
 ## Prefer inline text
 
@@ -309,7 +187,6 @@ const {fps, durationInFrames} = useVideoConfig();
       ['0px 0px', '0px 120px'],
       {
         easing: Easing.spring({damping: 200}),
-        output: 'perceptual-scale',
         extrapolateLeft: 'clamp',
         extrapolateRight: 'clamp'
       }
@@ -338,7 +215,10 @@ Use `<Interactive.Path>` from `remotion` instead of `<path>` inside an SVG to ma
 Install `@remotion/paths` for path interpolation and Studio path keyframes:
 
 ```sh
-bunx remotion add @remotion/paths
+npx remotion add @remotion/paths # If project uses npm
+bunx remotion add @remotion/paths # If project uses bun
+yarn remotion add @remotion/paths # If project uses yarn
+pnpm exec remotion add @remotion/paths # If project uses pnpm
 ```
 
 If the geometry is meant to be static, put the path string directly in the `d` prop. Do not extract it into a constant.
@@ -409,11 +289,14 @@ When scaffolding a composition, use a JSX string literal for `id`, keep `width`,
 The Props editor can save visual edits back to your code when `defaultProps` is an inline object literal on `<Composition>` or `<Still>`.
 
 ```tsx
+import {Composition, type CalculateMetadataFunction} from 'remotion';
+import {MyComponent, type Props} from './MyComponent';
+
 // 👍 Static values are in <Composition>, dynamic values are in calculateMetadata()
-const calculateMetadata = useMemo(async () => {
+const calculateMetadata: CalculateMetadataFunction<Props> = async () => {
   const dimensions = await getDimensions(); // just an example
   return {width: dimensions.width, height: dimensions.height};
-});
+};
 
 <Composition
   id="my-video"
@@ -427,10 +310,10 @@ const calculateMetadata = useMemo(async () => {
 
 ```tsx title="Negative examples"
 const defaultProps = {title: 'Hello', color: '#0b84ff'}; // ❌ Don't extract defaultProps, must be inline
-const calculateMetadata = useMemo(() => {
+const calculateMetadata: CalculateMetadataFunction<Props> = () => {
   // ❌ Unnecessary because no calculation is being done,
   return {durationInFrames: 150, fps: 30, width: 1920, height: 1080};
-});
+};
 
 <Composition
   id="my-video"
